@@ -2,9 +2,10 @@
 import mongoose, { HydratedDocument, Schema, Types } from "mongoose"
 import { AccountType } from "src/utils/constants"
 import { Address } from "./address.model"
+import { Business } from "./business.model"
 
 export class User {
-    _id : String
+    _id? : String
     phoneNumber?: String
     username?: String
     password?: String
@@ -14,6 +15,9 @@ export class User {
     dateCreate?: Date
     orders?: String[]
     addresses?: Address[]
+
+    userBusinesses : String[]
+
 
     static ModelName = "User"
 }
@@ -28,6 +32,7 @@ export var userSchema : Schema = new mongoose.Schema<User>({
     favoriteService: { type: Types.ObjectId },
     dateCreate: { type: Date },
     orders: { type: [Types.ObjectId], default: [] },
+    userBusinesses : {type : [Types.ObjectId] , ref : "Business" , default : []},
     addresses: [{
         type: {
             location: {

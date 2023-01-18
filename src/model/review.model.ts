@@ -1,6 +1,7 @@
 import { HydratedDocument, Schema } from "mongoose"
 
 export class Review {
+    _id? : String
     description?: String
     serviceName?: String
     businessName?: String

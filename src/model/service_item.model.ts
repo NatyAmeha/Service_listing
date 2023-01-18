@@ -4,6 +4,7 @@ import { Business } from "./business.model"
 import { Service } from "./service.model"
 
 export class ServiceItem {
+    _id? : String
     name?: String
     description?: String
     images?: String[]
@@ -43,8 +44,8 @@ export var serviceItemSchema: Schema = new Schema<ServiceItem>({
     description: { type: String },
     images: { type: [String], required: true },
     moreInfo: { type: Map, of: String },
-    service: { type: Types.ObjectId, required: true , ref : Service.ModelName },
-    business : { type: Types.ObjectId, required: true , ref : Business.ModelName },
+    service: { type: Types.ObjectId, required: true , ref : "Service" },
+    business : { type: Types.ObjectId, required: true , ref : "Business" },
     category: { type: String },
     tags: { type: [String] },
     fixedPrice: { type: Number },

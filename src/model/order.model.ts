@@ -5,6 +5,7 @@ import { Address } from "./address.model"
 import { User } from "./user.model"
 
 export class Order {
+    _id? : String
     name?: String
     image?: String
     price?: number
@@ -55,7 +56,7 @@ var orderSchema: Schema = new mongoose.Schema<Order>({
                 type: { type: String, enum: ["Point"], required: false },
                 coordinates: { type: [Number], required: false }
             },
-            phoneNumber: { type: String },
+           
             localAddress: { type: String }
         }, required: true
     },

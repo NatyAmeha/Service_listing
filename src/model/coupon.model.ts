@@ -5,7 +5,7 @@ import { Service } from "./service.model"
 import { User } from "./user.model"
 
 export class Coupon {
-
+    _id? : String
     name?: String
     description?: String
     images?: String[]
@@ -47,15 +47,15 @@ export var couponSchema = new Schema<Coupon>({
     },
     businessName: { type: String, required: true },
     serviceName: { type: String, required: true },
-    business: { type: Types.ObjectId, required: true, ref: Business.ModelName },
-    service: { type: Types.ObjectId, required: true, ref: Service.ModelName },
+    business: { type: Types.ObjectId, required: true, ref: "Business" },
+    service: { type: Types.ObjectId, required: true, ref: "Service" },
     couponCodes: [{
         type: {
             value: { type: String },
             used: { type: Boolean },
-            user: { type: Types.ObjectId, ref: User.ModelName },
+            user: { type: Types.ObjectId, ref: "User" },
         }
     }],
     isActive: { type: Boolean, default: false },
-    creator : {type : Types.ObjectId , ref : User.ModelName}
+    creator : {type : Types.ObjectId , ref : "User"}
 })

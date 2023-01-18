@@ -7,6 +7,7 @@ import { ServiceItem } from "./service_item.model"
 import { User } from "./user.model"
 
 export class Service {
+    _id? : String
     name?: String
     description?: String
     images?: String[]
@@ -34,12 +35,12 @@ export var serviceSchema = new Schema<Service>({
     tags: { type: [String], default: [] },
     viewCount: { type: Number, default: 0 },
     active: { type: Boolean, default: true },
-    serviceItems: { type: [Types.ObjectId], ref: ServiceItem.ModelName },
-    coupons: { type: [Types.ObjectId], ref: Coupon.ModelName },
+    serviceItems: { type: [Types.ObjectId], ref: "ServiceItem" },
+    coupons: { type: [Types.ObjectId], ref: "Coupon" },
     dateCreated: { type: Date, default: Date.now() },
-    reviews: { type: [Types.ObjectId], ref: Review.ModelName },
+    reviews: { type: [Types.ObjectId], ref: "Review" },
     reviewPoints: { type: [String] },
-    creator: { type: Types.ObjectId, ref: User.ModelName },
+    creator: { type: Types.ObjectId, ref: "User" },
     contact: {
         type: {
             email: { type: String },
@@ -53,7 +54,7 @@ export var serviceSchema = new Schema<Service>({
                 type: { type: String, enum: ["Point"], required: false },
                 coordinates: { type: [Number], required: false }
             },
-            phoneNumber: { type: String },
+            
             localAddress: { type: String }
         },
         default: []
