@@ -7,15 +7,17 @@ import { BusinessController } from './business.controller';
 import { BusinessService } from './business.service';
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Business.ModelName, schema: businessSchema }]),
-  AuthModule],
+    imports: [
+        MongooseModule.forFeature([{ name: Business.ModelName, schema: businessSchema }]),
+        AuthModule
+    ],
     providers: [
         {
             provide: BusinessRepository.injectName,
             useClass: BusinessRepository
         },
         BusinessService,
-        
+
     ],
     controllers: [BusinessController]
 })

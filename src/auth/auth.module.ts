@@ -8,6 +8,7 @@ import { JwtStrategyService } from 'src/services/jwt.service';
 import { Constants } from 'src/utils/constants';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { RoleGuard } from './role.guard';
 
 @Module({
   imports: [
@@ -25,8 +26,8 @@ import { AuthService } from './auth.service';
        provide : JwtStrategyService.JWT_STRATEGY_INJECT,
        useClass : JwtStrategyService
     },
-    AuthService
+    AuthService,RoleGuard
   ],
-  exports : [PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName]
+  exports : [PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName , RoleGuard]
 })
 export class AuthModule { }
