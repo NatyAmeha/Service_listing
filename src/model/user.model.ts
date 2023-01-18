@@ -14,6 +14,8 @@ export class User {
     dateCreate?: Date
     orders?: String[]
     addresses?: Address[]
+
+    static ModelName = "User"
 }
 
 export var userSchema : Schema = new mongoose.Schema<User>({
