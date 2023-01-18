@@ -27,6 +27,6 @@ import { AuthService } from './auth.service';
     },
     AuthService
   ],
-  exports : [PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT]
+  exports : [PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName]
 })
 export class AuthModule { }

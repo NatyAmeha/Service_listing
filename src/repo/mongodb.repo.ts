@@ -58,9 +58,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     async findOne(predicate: Object, populateString?: String, incExc?: String): Promise<T> {
         try {
             var result = await this.model.findOne(predicate).populate(populateString?.toString()).session(this.session || null) as T
-            if (!result) {
-                throw new NotFoundException(null, "Not found ")
-            }
+            
             return result
         } catch (ex) {
             console.log(ex)
@@ -101,10 +99,10 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             throw new InternalServerErrorException(null, ex.toString())
         }
     }
-    async update(predicate: Object, data: T): Promise<any> {
+    async update(predicate: Object, data: any): Promise<any> {
         try {
-            var result = await this.model.updateOne(predicate, { $set: data }, { new: true }).session(this.session || null)
-            if (result) {
+            var result = await this.model.updateOne(predicate, data, { new: true }).session(this.session || null)
+            if (result.acknowledged) {
                 return result
             }
             return Promise.reject(new InternalServerErrorException("DB", "unable to update user date"))

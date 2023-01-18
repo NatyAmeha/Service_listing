@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { configSchema } from './config.schema';
+import { BusinessModule } from './business/business.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { configSchema } from './config.schema';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule,],
+    , AuthModule, BusinessModule,],
   controllers: [AppController],
   providers: [AppService],
 })
