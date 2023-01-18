@@ -14,10 +14,10 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async getAll(pageNumber?: number, size?: number): Promise<T[]> {
         try {
-            var result = await this.model.find({}).skip((pageNumber - 1) * size).limit(size).session(this.session || null) as T[]
+            var result = await this.model.find().skip((pageNumber - 1) * size).limit(size).session(this.session || null) as T[]
             return result;
         } catch (ex) {
-            console.log(ex)
+            console.log("get all exeption", ex)
             throw new InternalServerErrorException(null, ex.toString())
         }
 
@@ -99,15 +99,16 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             throw new InternalServerErrorException(null, ex.toString())
         }
     }
-    async update(predicate: Object, data: any): Promise<any> {
+    async update(predicate: Object, data: any): Promise<Boolean> {
         try {
-            var result = await this.model.updateOne(predicate, data, { new: true }).session(this.session || null)
+            console.log("data is " , data)
+            var result = await this.model.updateOne(predicate, {$set : data} , { new: true }).session(this.session || null)
             if (result.acknowledged) {
-                return result
+                return true
             }
-            return Promise.reject(new InternalServerErrorException("DB", "unable to update user date"))
+            return false
         } catch (ex) {
-            console.log(ex)
+            console.log("update error" , ex)
             throw new InternalServerErrorException(null, ex.toString())
         }
     }

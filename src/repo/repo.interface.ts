@@ -11,7 +11,7 @@ export interface IRepository<T> {
     addMany(data: any): Promise<any>
     // addAll(date: any[]): Promise<InsertManyResult<T>>
     upsert(query: Object, data: any): Promise<T | any>
-    update(predicate: Object, data: T): Promise<any>
+    update(predicate: Object, data: T): Promise<Boolean>
     // updateOne(predicate: Object, data: any): Promise<any>
     updateMany(predicate: Object, data: any): Promise<T>
 
