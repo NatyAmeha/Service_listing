@@ -19,6 +19,7 @@ import { BusinessService } from './business.service';
         BusinessService,
 
     ],
-    controllers: [BusinessController]
+    controllers: [BusinessController],
+    exports : [BusinessRepository.injectName]
 })
 export class BusinessModule { }

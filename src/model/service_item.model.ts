@@ -3,20 +3,23 @@ import { HydratedDocument, Schema, Types } from "mongoose"
 import { Business } from "./business.model"
 import { Service } from "./service.model"
 
+
 export class ServiceItem {
     _id? : String
     name?: String
     description?: String
     images?: String[]
     moreInfo?: Map<String, String>
-    service?: String
-    business? : String
+    service?: String | Service
+    servieName? : String
+    business? : String | Business
+    businesName? : String
     category?: String
     tags?: String[]
     fixedPrice?: number
     minPrice?: number
     maxPrice?: number
-    maxCount?: number
+    maxAmount?: number
     likeCount?: number
     viewCount?: number
     featured?: Boolean
@@ -34,12 +37,13 @@ export class ServiceItemVariant {
     moreInfo?: Map<String, String>
     fixedPrice?: number
     minPrice?: number
+    
     maxPrice?: number
 }
 
 export type ServiceItemDocument = HydratedDocument<ServiceItem>;
 
-export var serviceItemSchema: Schema = new Schema<ServiceItem>({
+export var serviceItemSchema = new Schema<ServiceItem>({
     name: { type: String, required: true },
     description: { type: String },
     images: { type: [String], required: true },
@@ -50,18 +54,19 @@ export var serviceItemSchema: Schema = new Schema<ServiceItem>({
     tags: { type: [String] },
     fixedPrice: { type: Number },
     minPrice: {
-        type: Number, required: (): boolean => {
+        type: Number, required: function(): boolean {
             const item = this as ServiceItem
+            console.log("fixed price" , item.fixedPrice)
             return item.fixedPrice == undefined;
         }
     },
     maxPrice: {
-        type: Number, required: (): boolean => {
+        type: Number, required: function (): boolean {
             const item = this as ServiceItem
             return item.fixedPrice == undefined;
         }
     },
-    maxCount: { type: Number },
+    maxAmount: { type: Number },
     likeCount: { type: Number, default: 0 },
     viewCount: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
@@ -70,17 +75,17 @@ export var serviceItemSchema: Schema = new Schema<ServiceItem>({
     dateCreated: { type: Date, default: Date.now() },
     variants: [{
         type: {
-            images: { tyep: [String], required: true },
+            images: { type: [String] },
             moreInfo: { type: Map, of: String },
             fixedPrice: { type: Number },
             minPrice: {
-                type: Number, required: (): boolean => {
+                type: Number, required: function(): boolean{
                     const item = this as ServiceItem
                     return item.fixedPrice == undefined;
                 }
             },
             maxPrice: {
-                type: Number, required: (): boolean => {
+                type: Number, required: function(): boolean  {
                     const item = this as ServiceItem
                     return item.fixedPrice == undefined;
                 }

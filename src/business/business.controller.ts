@@ -33,7 +33,7 @@ export class BusinessController {
     @Get("/:id")
     async getBusinessDetails(@Param("id") businessId: String) {
         var businessResult = await this.businesService.getBusinessDetails(businessId)
-        return businessResult
+        return businessResult 
     }
 
     @Get("/")

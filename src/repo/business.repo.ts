@@ -12,8 +12,8 @@ export interface IBusinessRepo extends IRepository<Business>{
 @Injectable()
 export class BusinessRepository extends MongodbRepo<BussinessDocument> implements IBusinessRepo{
     static  injectName = "BUSINESS_REPOSITORY"
-    constructor(@InjectModel(Business.ModelName) protected userModel : Model<BussinessDocument>){
-        super(userModel )
+    constructor(@InjectModel(Business.ModelName) protected businessModel : Model<BussinessDocument>){
+        super(businessModel )
         
     }    
     async getRelatedBusiness(businessInfo: Business): Promise<Business[]> {

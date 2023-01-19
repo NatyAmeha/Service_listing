@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { result } from 'lodash';
 import { ClientSession } from 'mongoose';
 import { BusinessDTO } from 'src/dto/business.dto';
+import { ServiceDTO } from 'src/dto/service.dto';
 import { Business } from 'src/model/business.model';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
 import { UserRepository } from 'src/repo/user.repo';
@@ -24,7 +25,7 @@ export class BusinessService {
 
         // update user info
 
-        var userUpdateREsult = await this.userRepo.update({ _id: userId }, { $push: { userBusinesses: businessResult._id } })
+        var userUpdateREsult = await this.userRepo.updateWithFilter({ _id: userId }, { $push: { userBusinesses: businessResult._id } })
         return businessResult
 
     }
@@ -48,12 +49,13 @@ export class BusinessService {
 
     async getBusinessDetails(businessId : String) : Promise<BusinessDTO>{
         //get businessInfo
-        var businessInfo = await this.businessRepo.get(businessId)
+        var businessInfo = await this.businessRepo.get(businessId , "services")
+        var services = businessInfo.services.map(service => new ServiceDTO({serviceInfo : service}))
         var relatedBusinesses = await this.businessRepo.getRelatedBusiness(businessInfo)
-        var result = new BusinessDTO({businessInfo : businessInfo , relatedBusinesses : relatedBusinesses})
-
+        var businessDTOResult = new BusinessDTO({businessInfo : businessInfo , relatedBusinesses : relatedBusinesses , services : services})
+        
         // get review info
-        return result;        
+        return businessDTOResult;        
     }
 
 

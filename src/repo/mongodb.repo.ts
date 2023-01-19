@@ -20,12 +20,10 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             console.log("get all exeption", ex)
             throw new InternalServerErrorException(null, ex.toString())
         }
-
-
     }
-    async get(id: String, populate?: String, incexc?: String): Promise<T> {
+    async get(id: String, populate?: any, incexc?: String): Promise<T> {
         try {
-            var result = await this.model.findById(id).populate(populate?.toString()).session(this.session || null) as T;
+            var result = await this.model.findById(id).populate(populate).session(this.session || null) as T;
             if (!result) {
                 throw new NotFoundException(null, "Not found by this id")
             }
@@ -39,7 +37,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async find(predicate: Object, populateString?: any, limit?: number, page?, incexc?: String): Promise<T[]> {
         try {
-            var result = await this.model.find(predicate).skip((page - 1) * limit).limit(limit).session(this.session || null) as T[]
+            var result = await this.model.find(predicate).populate(populateString).skip((page - 1) * limit).limit(limit).session(this.session || null) as T[]
             return result;
         } catch (ex) {
             console.log(ex)
@@ -103,6 +101,20 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         try {
             console.log("data is " , data)
             var result = await this.model.updateOne(predicate, {$set : data} , { new: true }).session(this.session || null)
+            if (result.acknowledged) {
+                return true
+            }
+            return false
+        } catch (ex) {
+            console.log("update error" , ex)
+            throw new InternalServerErrorException(null, ex.toString())
+        }
+    }
+
+    async updateWithFilter(predicate: Object, data: Object): Promise<Boolean> {
+        try {
+            var result = await this.model.updateOne(predicate, data ).session(this.session || null)
+            console.log("data is " , data , result)
             if (result.acknowledged) {
                 return true
             }

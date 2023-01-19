@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { configSchema } from './config.schema';
 import { BusinessModule } from './business/business.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -22,8 +23,9 @@ import { BusinessModule } from './business/business.module';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule, BusinessModule,],
+    , AuthModule, BusinessModule, ServiceModule,],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService], 
 })
-export class AppModule { }
+export class AppModule { }    
+  

@@ -11,7 +11,7 @@ export class Business {
     category?: String
     likeCount?: number
     verified?: Boolean
-    services?: String[]
+    services?: String[] | Service[]
     images?: String[]
     addresses?: Address[]
     contact?: Contact
@@ -27,7 +27,7 @@ export var businessSchema: Schema = new Schema<Business>({
     category: { type: String, required: true },
     likeCount: { type: Number, default: 0 },
     verified: { type: Boolean, default: false },
-    services: { type: [String], ref: "Service"},
+    services: { type: [Types.ObjectId], ref: "Service" , default : []},
     images: { type: [String], required: true },
     dateCreated : {type : Date , default : Date.now()},
     creator : {type : Types.ObjectId , ref : "User"},

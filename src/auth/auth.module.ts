@@ -13,7 +13,7 @@ import { RoleGuard } from './role.guard';
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({ secret: "SUPER_SECRET", signOptions: { expiresIn: 3600 } }),
+    JwtModule.register({ secret: "SUPER_SECRET", signOptions: { expiresIn: 24*3600 } }),
     MongooseModule.forFeature([{ name: Constants.USER_MODEL, schema: userSchema }])],
   controllers: [AuthController],
 

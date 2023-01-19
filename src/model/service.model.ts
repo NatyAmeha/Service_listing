@@ -1,5 +1,6 @@
 import { HydratedDocument, Schema, Types } from "mongoose"
 import { Address } from "./address.model"
+import { Business } from "./business.model"
 import { Contact } from "./contact.model"
 import { Coupon } from "./coupon.model"
 import { Review } from "./review.model"
@@ -10,12 +11,14 @@ export class Service {
     _id? : String
     name?: String
     description?: String
+    business? : String | Business
+    businessName? : String
     images?: String[]
     tags?: String[]
     viewCount?: number
     active?: Boolean
     creator?: String
-    serviceItems: String[]
+    serviceItems: String[] | ServiceItem[]
     addresses?: Address[]
     contact?: Contact
     coupons?: String[]
@@ -32,10 +35,12 @@ export var serviceSchema = new Schema<Service>({
     name: { type: String, required: true },
     description: { type: String, required: true },
     images: { type: [String], required: true },
+    business: { type: Types.ObjectId, ref: "Business" },
+    businessName : {type : String , required : true},
     tags: { type: [String], default: [] },
     viewCount: { type: Number, default: 0 },
     active: { type: Boolean, default: true },
-    serviceItems: { type: [Types.ObjectId], ref: "ServiceItem" },
+    serviceItems: { type: [Types.ObjectId], ref: "ServiceItem" , default : [] },
     coupons: { type: [Types.ObjectId], ref: "Coupon" },
     dateCreated: { type: Date, default: Date.now() },
     reviews: { type: [Types.ObjectId], ref: "Review" },
