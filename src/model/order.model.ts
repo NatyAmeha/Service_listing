@@ -2,12 +2,14 @@ import { number } from "joi"
 import mongoose, { HydratedDocument, Schema, Types } from "mongoose"
 import { OrderStatus, OrderType } from "src/utils/constants"
 import { Address } from "./address.model"
+import { Contact } from "./contact.model"
+import { ServiceItem } from "./service_item.model"
 import { User } from "./user.model"
 
 export class Order {
     _id? : String
     name?: String
-    image?: String
+    image?: String[]
     price?: number
     priceRange?: { min: number, max: number }
     business?: String
@@ -20,22 +22,26 @@ export class Order {
     type?: String
     dateCreated?: Date
     address?: Address
+    contact? : Contact
 
     static ModelName = "Order"
 
 }
 
 export class OrderItem {
-    serviceItem?: String
+    serviceItem?: String | ServiceItem
     qty?: number
     coupon?: String
 }
 
 export var orderSchema: Schema = new mongoose.Schema<Order>({
     name: { type: String, required: true },
-    image: { type: String, required: true },
-    price: { type: Number, },
-    priceRange: { type: {} },
+    image: { type: [String], required: true },
+    price: { type: Number },
+    priceRange: { type: {
+        min : {type : Number},
+        max : {type : Number}
+    } },
     business: { type: String },
     items: [{
         type: {
@@ -47,7 +53,7 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
     }],
     code: { type: String },
     user: { type: Types.ObjectId, required: true },
-    status: { type: String, enum: OrderStatus, default: OrderStatus.PENDING.toString() },
+    status: { type: String, enum: OrderStatus, default: OrderStatus.PENDING },
     expireDate: { type: Date },
     moreInfo: { type: Map, of: String },
     type: { type: String, enum: OrderType, required: true },
@@ -61,6 +67,13 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
            
             localAddress: { type: String }
         }, required: true
+    },
+    contact: {
+        type: {
+            email: { type: String },
+            phoneNumber: { type: [String] },
+            links: { type: Map, of: String }
+        }
     },
 })
 

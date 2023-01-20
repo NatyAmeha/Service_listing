@@ -28,6 +28,9 @@ import { RoleGuard } from './role.guard';
     },
     AuthService,RoleGuard
   ],
-  exports : [PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName , RoleGuard]
+  exports : [
+    MongooseModule,
+    
+    PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName , RoleGuard]
 })
 export class AuthModule { }

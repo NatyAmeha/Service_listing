@@ -7,6 +7,7 @@ import { Order, orderSchema } from 'src/model/order.model';
 import { CouponRepository } from 'src/repo/coupon.repo';
 import { OrderRepository } from 'src/repo/order.repo';
 import { ServiceModule } from 'src/service/service.module';
+import { UserModule } from 'src/user/user.module';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
 import { OrderController } from './order.controller';
@@ -17,7 +18,7 @@ import { OrderService } from './order.service';
         AuthModule,
         BusinessModule,
         ServiceModule,
-        
+        UserModule,
         MongooseModule.forFeature(
             [
                 { name: Order.ModelName, schema: orderSchema },

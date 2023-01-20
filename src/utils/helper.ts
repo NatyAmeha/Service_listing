@@ -4,6 +4,7 @@ import { CouponCode } from "src/model/coupon.model";
 export interface IHelper {
     
     generateCouponCodes(amount: number);
+    generateCode(length: number, generatedCodes: String[])
 }
 
 @Injectable()

@@ -10,7 +10,7 @@ import { MongodbRepo } from "./mongodb.repo"
 import { IRepository } from "./repo.interface"
 
 export interface ICouponRepo extends IRepository<Coupon> {
-    getActiveCoupons(endData: Date, page: number, pageSize: number): Promise<CouponDTO[]>
+    getActiveCoupons( endData: Date, page: number, pageSize: number , id? : String[]): Promise<CouponDTO[]>
     getCouponsForService(serviceId: String): Promise<CouponDTO[]>
     getCouponsForBusiness(businessId: String): Promise<CouponDTO[]>
 }
@@ -22,7 +22,26 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
     constructor(@InjectModel(Coupon.ModelName) protected couponModel: Model<CouponDocument>) {
         super(couponModel)
     }
-    async getActiveCoupons(endDate: Date, page: number, pageSize: number): Promise<CouponDTO[]> {
+    async getActiveCoupons(endDate: Date, page: number, pageSize: number , id? : String[]): Promise<CouponDTO[]> {
+        if(id){
+            var result = await this.couponModel.find(
+                {
+                    _id : {$in : id},
+                    endDate: { $gte: new Date(endDate) },
+                    "couponCodes": { $elemMatch: { used: false } }
+                },
+            ).populate(['service', 'business'])
+        }
+        else{
+            var result = await this.couponModel.find(
+                {
+                    endDate: { $gte: new Date(endDate) },
+                    "couponCodes": { $elemMatch: { used: false } }
+                },
+            ).populate(['service', 'business'])
+        }
+            
+        
         var result = await this.couponModel.find(
             {
                 endDate: { $gte: new Date(endDate) },
