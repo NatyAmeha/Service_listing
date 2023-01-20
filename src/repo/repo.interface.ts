@@ -12,7 +12,7 @@ export interface IRepository<T> {
     // addAll(date: any[]): Promise<InsertManyResult<T>>
     upsert(query: Object, data: any): Promise<T | any>
     update(predicate: Object, data: any): Promise<Boolean>
-    updateWithFilter(predicate: Object, data: Object): Promise<Boolean>
+    updateWithFilter(predicate: Object, data: Object , strict? : Boolean): Promise<Boolean>
     // updateOne(predicate: Object, data: any): Promise<any>
     updateMany(predicate: Object, data: any): Promise<T>
 

@@ -111,14 +111,14 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         }
     }
 
-    async updateWithFilter(predicate: Object, data: Object): Promise<Boolean> {
+    async updateWithFilter(predicate: Object, data: Object , strict : Boolean = false): Promise<Boolean> {
         try {
             var result = await this.model.updateOne(predicate, data ).session(this.session || null)
             console.log("data is " , data , result)
             if (result.acknowledged) {
                 return true
             }
-            return false
+            return strict ? Promise.reject(false) : false
         } catch (ex) {
             console.log("update error" , ex)
             throw new InternalServerErrorException(null, ex.toString())

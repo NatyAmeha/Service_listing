@@ -29,6 +29,9 @@ import { ServiceService } from './service.service';
       useClass: ServiceItemRepository
     },
     ServiceService
+  ],
+  exports : [
+     ServiceRepository.injectName 
   ]
 })
 export class ServiceModule { }

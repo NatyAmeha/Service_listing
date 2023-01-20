@@ -1,6 +1,7 @@
 import { HydratedDocument, Schema, Types } from "mongoose"
 import { Address } from "./address.model"
 import { Contact } from "./contact.model"
+import { Coupon } from "./coupon.model"
 import { Service } from "./service.model"
 import { User } from "./user.model"
 
@@ -12,6 +13,7 @@ export class Business {
     likeCount?: number
     verified?: Boolean
     services?: String[] | Service[]
+    coupons? : String[] | Coupon[]
     images?: String[]
     addresses?: Address[]
     contact?: Contact
@@ -28,6 +30,7 @@ export var businessSchema: Schema = new Schema<Business>({
     likeCount: { type: Number, default: 0 },
     verified: { type: Boolean, default: false },
     services: { type: [Types.ObjectId], ref: "Service" , default : []},
+    coupons : {type : [Types.ObjectId] , ref : "Coupon" , default : []},
     images: { type: [String], required: true },
     dateCreated : {type : Date , default : Date.now()},
     creator : {type : Types.ObjectId , ref : "User"},

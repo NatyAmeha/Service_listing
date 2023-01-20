@@ -21,6 +21,8 @@ export class Order {
     dateCreated?: Date
     address?: Address
 
+    static ModelName = "Order"
+
 }
 
 export class OrderItem {
@@ -29,7 +31,7 @@ export class OrderItem {
     coupon?: String
 }
 
-var orderSchema: Schema = new mongoose.Schema<Order>({
+export var orderSchema: Schema = new mongoose.Schema<Order>({
     name: { type: String, required: true },
     image: { type: String, required: true },
     price: { type: Number, },

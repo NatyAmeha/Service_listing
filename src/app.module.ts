@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -8,7 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { configSchema } from './config.schema';
 import { BusinessModule } from './business/business.module';
 import { ServiceModule } from './service/service.module';
-
+import { OrderModule } from './order/order.module';
+import { Helper } from './utils/helper';
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,9 +25,16 @@ import { ServiceModule } from './service/service.module';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule, BusinessModule, ServiceModule,],
+    , AuthModule, BusinessModule, ServiceModule, OrderModule,],
   controllers: [AppController],
-  providers: [AppService], 
+  providers: [
+    {
+      provide : Helper.INJECT_NAME,
+      useClass : Helper
+    },
+    AppService
+  ],
+  exports : [Helper.INJECT_NAME] 
 })
 export class AppModule { }    
   

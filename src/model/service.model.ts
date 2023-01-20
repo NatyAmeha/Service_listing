@@ -21,7 +21,7 @@ export class Service {
     serviceItems: String[] | ServiceItem[]
     addresses?: Address[]
     contact?: Contact
-    coupons?: String[]
+    coupons?: String[] | Coupon[]
     dateCreated?: Date
     reviews?: String[]
     reviewPoints: String[]
