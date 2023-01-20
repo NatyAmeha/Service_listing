@@ -25,6 +25,7 @@ export class ServiceController {
     async getServiceDetails(@Param("id") businessId: String) {
         var serviceResult = await this.serviceService.getServiceDetails(businessId)
         return serviceResult 
+        
     }
 
     @Get("/")

@@ -37,6 +37,7 @@ import { OrderService } from './order.service';
         },
         OrderService,
         CouponService
-    ]
+    ],
+    exports : [OrderRepository.injectName , CouponRepository.injectName] 
 })
 export class OrderModule { }

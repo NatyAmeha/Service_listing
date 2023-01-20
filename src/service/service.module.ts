@@ -31,7 +31,8 @@ import { ServiceService } from './service.service';
     ServiceService
   ],
   exports : [
-     ServiceRepository.injectName 
+     ServiceRepository.injectName,
+     ServiceItemRepository.injectName
   ]
 })
 export class ServiceModule { }

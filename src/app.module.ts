@@ -10,6 +10,7 @@ import { BusinessModule } from './business/business.module';
 import { ServiceModule } from './service/service.module';
 import { OrderModule } from './order/order.module';
 import { Helper } from './utils/helper';
+import { BrowseModule } from './browse/browse.module';
 @Global()
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { Helper } from './utils/helper';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule, BusinessModule, ServiceModule, OrderModule,],
+    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule,],
   controllers: [AppController],
   providers: [
     {

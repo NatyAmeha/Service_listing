@@ -35,7 +35,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
 
 
     }
-    async find(predicate: Object, populateString?: any, limit?: number, page? : number,  incexc?: String): Promise<T[]> {
+    async find(predicate: Object, populateString?: any, limit: number=100, page : number = 1,  incexc?: String): Promise<T[]> {
         try {
             var result = await this.model.find(predicate).populate(populateString).skip((page - 1) * limit).limit(limit).session(this.session || null) as T[]
             return result;

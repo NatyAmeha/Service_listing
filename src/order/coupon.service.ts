@@ -41,17 +41,8 @@ export class CouponService {
 
     async getActiveCoupons(endDate: Date, page: number = 1, pageSize: number = 100): Promise<CouponDTO[]> {
         var result = await this.couponRepo.getActiveCoupons(endDate, page, pageSize)
-        var couponResult = await result.map(coupon => {
-            const { service, business, ...remaining } = coupon
-            coupon.service = (service as Service)._id
-            coupon.business = (business as Business)._id
-            return new CouponDTO({
-                couponInfo: coupon,
-                services: [service as Service],
-                business: business as Business
-            })
-        })
-        return couponResult
+        return result
+
     }
 
     async updateCouponCodeStatus(couponId: String, couponCode: CouponCode): Promise<Boolean> {
