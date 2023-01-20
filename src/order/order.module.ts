@@ -8,6 +8,7 @@ import { CouponRepository } from 'src/repo/coupon.repo';
 import { OrderRepository } from 'src/repo/order.repo';
 import { ServiceModule } from 'src/service/service.module';
 import { CouponController } from './coupon.controller';
+import { CouponService } from './coupon.service';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 
@@ -34,7 +35,8 @@ import { OrderService } from './order.service';
             provide: CouponRepository.injectName,
             useClass: CouponRepository
         },
-        OrderService
+        OrderService,
+        CouponService
     ]
 })
 export class OrderModule { }

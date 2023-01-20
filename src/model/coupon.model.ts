@@ -1,5 +1,7 @@
 import { HydratedDocument, Schema, Types } from "mongoose"
 import { CouponType } from "src/utils/constants"
+import { Business } from "./business.model"
+import { Service } from "./service.model"
 
 
 export class Coupon {
@@ -7,14 +9,14 @@ export class Coupon {
     name?: String
     description?: String
     images?: String[]
-    couponType: String
+    couponType?: String
     startDate?: Date
     endDate?: Date
     maxAmount?: number
     businessName?: String
     serviceName?: String
-    business?: String
-    service?: String
+    business?: String | Business
+    service?: String | Service
     couponCodes?: CouponCode[]
     isActive?: Boolean
     dateCreated?: Date
@@ -25,6 +27,7 @@ export class Coupon {
 }
 
 export class CouponCode {
+    _id? : String
     value?: String
     used?: Boolean
     user?: String
