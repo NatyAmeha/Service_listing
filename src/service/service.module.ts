@@ -6,6 +6,7 @@ import { Service, serviceSchema } from 'src/model/service.model';
 import { ServiceItem, serviceItemSchema } from 'src/model/service_item.model';
 import { ServiceRepository } from 'src/repo/service.repo';
 import { ServiceItemRepository } from 'src/repo/service_item.repo';
+import { ReviewModule } from 'src/review/review.module';
 import { ServiceController } from './service.controller';
 import { ServiceService } from './service.service';
 
@@ -16,7 +17,8 @@ import { ServiceService } from './service.service';
       { name: ServiceItem.ModelName, schema: serviceItemSchema }
     ]),
     AuthModule,
-    BusinessModule
+    BusinessModule,
+    ReviewModule
   ],
   controllers: [ServiceController],
   providers: [

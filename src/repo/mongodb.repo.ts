@@ -48,7 +48,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             throw new InternalServerErrorException(null, ex.toString())
         }
     }
-    async findandSort(predicate: Object, sortPredicate: Object, limit: number, populateString?: any): Promise<T[]> {
+    async findandSort(predicate: Object, sortPredicate: Object, limit: number=100 , page : number = 1, populateString?: any): Promise<T[]> {
         try {
             var result = await this.model.find(predicate).sort(sortPredicate as any)
                 .limit(limit).session(this.session || null).lean() as T[]

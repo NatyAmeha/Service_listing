@@ -14,7 +14,4 @@ export class UserRepository extends MongodbRepo<UserDocument> implements IUserRe
         super(userModel )
         
     }
-
-    
-
 }

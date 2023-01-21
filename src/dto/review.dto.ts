@@ -1,7 +1,12 @@
-import { KeyReview } from "src/model/review.model"
+import { KeyReview, Review } from "src/model/review.model"
 
 export class ReviewDTO{
-    rating : number
-    count : number
-    keyPoint : KeyReview[]
+    rating? : number
+    count? : number
+    reviews? : Review[]
+    keyPoint? : KeyReview[]
+
+    constructor(data : Partial<ReviewDTO>){
+        Object.assign(this, data);
+    }
 }

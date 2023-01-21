@@ -12,6 +12,7 @@ import { OrderModule } from './order/order.module';
 import { Helper } from './utils/helper';
 import { BrowseModule } from './browse/browse.module';
 import { UserModule } from './user/user.module';
+import { ReviewModule } from './review/review.module';
 @Global()
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { UserModule } from './user/user.module';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule,],
+    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule, ReviewModule,],
   controllers: [AppController],
   providers: [
     {

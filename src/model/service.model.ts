@@ -43,7 +43,7 @@ export var serviceSchema = new Schema<Service>({
     serviceItems: { type: [Types.ObjectId], ref: "ServiceItem" , default : [] },
     coupons: { type: [Types.ObjectId], ref: "Coupon" },
     dateCreated: { type: Date, default: Date.now() },
-    reviews: { type: [Types.ObjectId], ref: "Review" },
+    reviews: { type: [Types.ObjectId], ref: "Review" , default : [] },
     reviewPoints: { type: [String] },
     creator: { type: Types.ObjectId, ref: "User" },
     contact: {

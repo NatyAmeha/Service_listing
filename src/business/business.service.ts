@@ -2,16 +2,22 @@ import { Inject, Injectable } from '@nestjs/common';
 import { result } from 'lodash';
 import { ClientSession } from 'mongoose';
 import { BusinessDTO } from 'src/dto/business.dto';
+import { ReviewDTO } from 'src/dto/review.dto';
 import { ServiceDTO } from 'src/dto/service.dto';
 import { Business } from 'src/model/business.model';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
-import { UserRepository } from 'src/repo/user.repo';
-import { Helper } from 'src/utils/helper';
+import { IReviewRepo, ReviewRepository } from 'src/repo/review.repo';
+import { IUserRepo, UserRepository } from 'src/repo/user.repo';
+import { Helper, IHelper } from 'src/utils/helper';
+import * as _ from "lodash"
+import { ReviewService } from 'src/review/review.service';
 
 @Injectable()
 export class BusinessService {
     constructor(@Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
-        @Inject(UserRepository.injectName) private userRepo: UserRepository) {
+        @Inject(UserRepository.injectName) private userRepo: IUserRepo,
+        @Inject(Helper.INJECT_NAME) private helper : IHelper,
+        private reviewService : ReviewService) {
 
     }
 
@@ -55,7 +61,21 @@ export class BusinessService {
         var businessDTOResult = new BusinessDTO({businessInfo : businessInfo , relatedBusinesses : relatedBusinesses , services : services})
         
         // get review info
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({business: businessId})
+        
+        // await this.reviewRepo.findandSort({ business: businessId } , {dateCreated : -1})
+        // var rating = this.helper.calculateRating(businessReview)
+        // var reviewDTOResult = new ReviewDTO({ rating: rating, reviews: _.take(businessReview, 10) })
+        businessDTOResult.reviewInfo = businessReview
+
+        //get trending products
+        
         return businessDTOResult;        
+    }
+
+    async getBusinessReviewDetails(businessId: String, keyPoints?: String[]): Promise<ReviewDTO> {
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints)       
+        return businessReview
     }
 
 

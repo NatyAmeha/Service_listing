@@ -1,19 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientSession } from 'mongoose';
+import { ReviewDTO } from 'src/dto/review.dto';
 import { ServiceDTO } from 'src/dto/service.dto';
 import { ServiceItemDTO } from 'src/dto/service_item.dto';
 import { Business } from 'src/model/business.model';
+import { Review } from 'src/model/review.model';
 import { Service } from 'src/model/service.model';
 import { ServiceItem } from 'src/model/service_item.model';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
+import { IReviewRepo, ReviewRepository } from 'src/repo/review.repo';
 import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
+import { ReviewService } from 'src/review/review.service';
+import { Helper, IHelper } from 'src/utils/helper';
+import* as _ from "lodash"
 
 @Injectable()
 export class ServiceService {
     constructor(@Inject(ServiceRepository.injectName) private serviceRepo: IServiceRepo,
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
-        @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo) {
+        @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
+        @Inject(ReviewRepository.injectName) private reviewRepo: IReviewRepo,
+        private reviewService : ReviewService,
+        @Inject(Helper.INJECT_NAME) private helper : IHelper) {
 
     }
 
@@ -51,6 +60,22 @@ export class ServiceService {
         return updateResult
     }
 
+    async createReview(reviewInfo: Review, session?: ClientSession): Promise<Review>{
+        var reviewCreateResult = await this.reviewRepo.add(reviewInfo)
+        var serviceUpdateResult = await this.serviceRepo.updateWithFilter({ _id: reviewInfo.service }, { $push: { reviews: reviewCreateResult._id } })
+        var businessUpdateREsult = await this.businessRepo.updateWithFilter({ _id: reviewInfo.business }, { $push: { reviews: reviewCreateResult._id } })
+        return reviewCreateResult
+    }
+
+    async getServiceReviews(serviceId: String, keyPoints?: String[]): Promise<ReviewDTO> {
+        var serviceReviews = await this.reviewService.getHighlevelReviewInfo({service: serviceId } , keyPoints)
+        // console.log("service reviews" , serviceReviews , serviceId)
+        // var rating = this.helper.calculateRating(serviceReviews, keyPoints)
+        // var reviewDTOResult = new ReviewDTO({ rating: rating, reviews: _.take(serviceReviews, 10) })
+        return serviceReviews
+    }
+
+
     async editServiceItem(id: String, serviceItemInfo: ServiceItem, session?: ClientSession): Promise<Boolean> {
         if (session) {
             this.serviceItemRepo.addSession(session)
@@ -65,7 +90,10 @@ export class ServiceService {
         //get related services
         var relatedService = await this.serviceRepo.getRelatedServices(serviceInfo)
         var result = new ServiceDTO({serviceInfo : serviceInfo , relatedServices : relatedService})
+        
         //get review info
+        var reviewResult = await this.reviewService.getHighlevelReviewInfo({service : id})
+        result.reviewInfo = reviewResult
         return result;
         
     }
