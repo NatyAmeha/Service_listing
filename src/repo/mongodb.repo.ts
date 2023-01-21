@@ -14,7 +14,8 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async getAll(pageNumber?: number, size?: number): Promise<T[]> {
         try {
-            var result = await this.model.find().skip((pageNumber - 1) * size).limit(size).session(this.session || null) as T[]
+            var result = await this.model.find().skip((pageNumber - 1) * size)
+                .limit(size).session(this.session || null).lean() as T[]
             return result;
         } catch (ex) {
             console.log("get all exeption", ex)
@@ -23,7 +24,8 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async get(id: String, populate?: any, incexc?: String): Promise<T> {
         try {
-            var result = await this.model.findById(id).populate(populate).session(this.session || null) as T;
+            var result = await this.model.findById(id).populate(populate)
+                .session(this.session || null).lean() as T;
             if (!result) {
                 throw new NotFoundException(null, "Not found by this id")
             }
@@ -35,9 +37,11 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
 
 
     }
-    async find(predicate: Object, populateString?: any, limit: number=100, page : number = 1,  incexc?: String): Promise<T[]> {
+    async find(predicate: Object, populateString?: any, limit: number = 100, page: number = 1, incexc?: String): Promise<T[]> {
         try {
-            var result = await this.model.find(predicate).populate(populateString).skip((page - 1) * limit).limit(limit).session(this.session || null) as T[]
+            var result = await this.model.find(predicate)
+                .populate(populateString).skip((page - 1) * limit)
+                .limit(limit).session(this.session || null).lean() as T[]
             return result;
         } catch (ex) {
             console.log(ex)
@@ -46,7 +50,8 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async findandSort(predicate: Object, sortPredicate: Object, limit: number, populateString?: any): Promise<T[]> {
         try {
-            var result = await this.model.find(predicate).sort(sortPredicate as any).limit(limit).session(this.session || null) as T[]
+            var result = await this.model.find(predicate).sort(sortPredicate as any)
+                .limit(limit).session(this.session || null).lean() as T[]
             return result
         } catch (ex) {
             console.log(ex)
@@ -55,8 +60,9 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async findOne(predicate: Object, populateString?: String, incExc?: String): Promise<T> {
         try {
-            var result = await this.model.findOne(predicate).populate(populateString?.toString()).session(this.session || null) as T
-            
+            var result = await this.model.findOne(predicate)
+                .populate(populateString?.toString()).session(this.session || null).lean() as T
+
             return result
         } catch (ex) {
             console.log(ex)
@@ -83,10 +89,10 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             throw new InternalServerErrorException(null, ex.toString())
         }
     }
-    
+
     async upsert(query: Object, data: any): Promise<any> {
         try {
-            var findResult = await this.model.findOne(query)
+            var findResult = await this.model.findOne(query).lean()
             if (findResult) {
                 var result = await this.model.findByIdAndUpdate(findResult._id, data)
                 return result;
@@ -99,28 +105,30 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async update(predicate: Object, data: any): Promise<Boolean> {
         try {
-            console.log("data is " , data)
-            var result = await this.model.updateOne(predicate, {$set : data} , { new: true }).session(this.session || null)
+            console.log("data is ", data)
+            var result = await this.model.updateOne(predicate, { $set: data }, { new: true })
+                .session(this.session || null).lean()
             if (result.acknowledged) {
                 return true
             }
             return false
         } catch (ex) {
-            console.log("update error" , ex)
+            console.log("update error", ex)
             throw new InternalServerErrorException(null, ex.toString())
         }
     }
 
-    async updateWithFilter(predicate: Object, data: Object , strict : Boolean = false): Promise<Boolean> {
+    async updateWithFilter(predicate: Object, data: Object, strict: Boolean = false): Promise<Boolean> {
         try {
-            var result = await this.model.updateOne(predicate, data ).session(this.session || null)
-            console.log("data is " , data , result)
+            var result = await this.model.updateOne(predicate, data)
+            .session(this.session || null).lean()
+            console.log("data is ", data, result)
             if (result.acknowledged) {
                 return true
             }
             return strict ? Promise.reject(false) : false
         } catch (ex) {
-            console.log("update error" , ex)
+            console.log("update error", ex)
             throw new InternalServerErrorException(null, ex.toString())
         }
     }

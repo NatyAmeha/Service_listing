@@ -1,6 +1,14 @@
-import { Order } from "src/model/order.model";
+import { Business } from "src/model/business.model";
+import { Order, OrderItem } from "src/model/order.model";
+import { ServiceItem } from "src/model/service_item.model";
 
 export class OrderDTO{
     order : Order
-    couponCodes : String[]
+    items : OrderItem[]
+    business? : Business
+    couponCodes? : String[]
+
+    constructor(data : Partial<OrderDTO>){
+        Object.assign(this, data);
+    }
 }
