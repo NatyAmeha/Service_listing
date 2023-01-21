@@ -16,7 +16,7 @@ import { BusinessService } from './business.service';
 export class BusinessController {
 
     constructor(private businesService: BusinessService,
-        private reviewService: ReviewService,
+        
          @InjectConnection() private connection: Connection) {
 
     }
@@ -57,6 +57,28 @@ export class BusinessController {
     async editBusinessInfo(@Query("id") businessId: String, @Body() businessInfo: Business) {
         var updateResult = await this.businesService.editBusiness(businessId, businessInfo)
         return updateResult
+    }
+
+    @Put("/like")
+    @UseGuards(AuthGuard())
+    async addBusinessToFavorite(@GetUser() user : User ,  @Query("id") businessId: String) {
+        var result = await Helper.runInTransaction(this.connection , async session =>{
+            var updateResult = await this.businesService.addToFavorite( businessId , user._id , session)
+            return updateResult
+
+        })
+        return result;
+    }
+ 
+    @Put("/unlike")
+    @UseGuards(AuthGuard())
+    async removeBusinessFromFavorite(@GetUser() user : User ,  @Query("id") businessId: String) {
+        var result = await Helper.runInTransaction(this.connection , async session =>{
+            var updateResult = await this.businesService.removeFromFavorite( businessId , user._id , session)
+            return updateResult
+ 
+        })
+        return result
     }
 
 

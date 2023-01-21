@@ -13,6 +13,7 @@ export class Business {
     likeCount?: number
     verified?: Boolean
     featured? : Boolean
+    
     services?: String[] | Service[]
     coupons? : String[] | Coupon[]
     images?: String[]

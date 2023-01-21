@@ -16,8 +16,8 @@ import { ReviewService } from 'src/review/review.service';
 export class BusinessService {
     constructor(@Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
         @Inject(UserRepository.injectName) private userRepo: IUserRepo,
-        @Inject(Helper.INJECT_NAME) private helper : IHelper,
-        private reviewService : ReviewService) {
+        @Inject(Helper.INJECT_NAME) private helper: IHelper,
+        private reviewService: ReviewService) {
 
     }
 
@@ -47,35 +47,51 @@ export class BusinessService {
         return businessResult;
     }
 
-    async editBusiness(businessId : String , newInfo : Business) : Promise<Boolean>{
+    async editBusiness(businessId: String, newInfo: Business): Promise<Boolean> {
         // update business info
-        var updateResult = await this.businessRepo.update({_id : businessId} , newInfo)
+        var updateResult = await this.businessRepo.update({ _id: businessId }, newInfo)
         return updateResult
     }
 
-    async getBusinessDetails(businessId : String) : Promise<BusinessDTO>{
+    async getBusinessDetails(businessId: String): Promise<BusinessDTO> {
         //get businessInfo
-        var businessInfo = await this.businessRepo.get(businessId , "services")
-        var services = businessInfo.services.map(service => new ServiceDTO({serviceInfo : service}))
+        var businessInfo = await this.businessRepo.get(businessId, "services")
+        var services = businessInfo.services.map(service => new ServiceDTO({ serviceInfo: service }))
         var relatedBusinesses = await this.businessRepo.getRelatedBusiness(businessInfo)
-        var businessDTOResult = new BusinessDTO({businessInfo : businessInfo , relatedBusinesses : relatedBusinesses , services : services})
-        
+        var businessDTOResult = new BusinessDTO({ businessInfo: businessInfo, relatedBusinesses: relatedBusinesses, services: services })
+
         // get review info
-        var businessReview = await this.reviewService.getHighlevelReviewInfo({business: businessId})
-        
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId })
+
         // await this.reviewRepo.findandSort({ business: businessId } , {dateCreated : -1})
         // var rating = this.helper.calculateRating(businessReview)
         // var reviewDTOResult = new ReviewDTO({ rating: rating, reviews: _.take(businessReview, 10) })
         businessDTOResult.reviewInfo = businessReview
 
         //get trending products
-        
-        return businessDTOResult;        
+
+        return businessDTOResult;
     }
 
     async getBusinessReviewDetails(businessId: String, keyPoints?: String[]): Promise<ReviewDTO> {
-        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints)       
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints)
         return businessReview
+    }
+
+    async addToFavorite(businessId: String, userId: String, session: ClientSession): Promise<Boolean> {
+        this.userRepo.addSession(session)
+        this.businessRepo.addSession(session)
+        var result = await this.businessRepo.updateWithFilter({ _id: businessId }, { $inc: { likeCount: 1 } })
+        var userUpdateResult = await this.userRepo.updateWithFilter({_id : userId} , {$addToSet : {favoriteBusinesses : businessId}})
+        return userUpdateResult
+    }
+
+    async removeFromFavorite(businessId: String, userId: String, session: ClientSession): Promise<Boolean> {
+        this.userRepo.addSession(session)
+        this.businessRepo.addSession(session)
+        var result = await this.businessRepo.updateWithFilter({ _id: businessId }, { $inc: { likeCount: -1 } })
+        var userUpdateResult = await this.userRepo.updateWithFilter({_id : userId} , {$pull : {favoriteBusinesses : businessId}})
+        return userUpdateResult
     }
 
 

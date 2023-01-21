@@ -24,18 +24,24 @@ export class Helper implements IHelper {
     static async runInTransaction<R>(connection: Connection, operation: (sesstion: ClientSession) => Promise<R>) {
         var session = await connection.startSession();
         try {
-            session.startTransaction({});
+            // var transactionResult = await session.withTransaction<R>(async (sess) => {
+            //     var result = await operation(sess)
+            //     return await result;
+            // })
+            // return transactionResult
+
+            session.startTransaction();
             var result = await operation(session)
             await session.commitTransaction()
+            
             return result;
 
         } catch (ex) {
             console.log("transaction error", ex.message)
             // await session.abortTransaction()
-            throw new InternalServerErrorException("", "Transaction error occurred")
-        } finally {
             await session.endSession()
-        }
+            throw new InternalServerErrorException("", "Transaction error occurred")
+        } 
     }
 
     generateCode(length: number, generatedCodes: String[]): String | undefined {

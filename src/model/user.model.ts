@@ -10,7 +10,7 @@ export class User {
     username?: String
     password?: String
     accountType?: String
-    favoriteBusiness?: String
+    favoriteBusinesses?: String[]
     favoriteService?: String
     dateCreate?: Date
     orders?: String[]
@@ -28,11 +28,11 @@ export var userSchema : Schema = new mongoose.Schema<User>({
     username: { type: String, required: true },
     password: { type: String },
     accountType: { type: String, enum: AccountType, default: AccountType.USER.toString() },
-    favoriteBusiness: { type: Types.ObjectId },
+    favoriteBusinesses: { type: [Types.ObjectId] , ref : "Business" , default : [] },
     favoriteService: { type: Types.ObjectId },
     dateCreate: { type: Date },
     orders: { type: [Types.ObjectId], default: [] },
-    userBusinesses : {type : [Types.ObjectId] , ref : "Business" , default : []},
+    userBusinesses : {type : [Types.ObjectId] , ref : "Business" , default : [] },
     addresses: [{
         type: {
             location: {

@@ -90,6 +90,9 @@ export class ServiceService {
         //get related services
         var relatedService = await this.serviceRepo.getRelatedServices(serviceInfo)
         var result = new ServiceDTO({serviceInfo : serviceInfo , relatedServices : relatedService})
+
+        //update serviceview count
+        var updateResult = await this.serviceRepo.updateWithFilter({_id : id} , {$inc : {viewCount : 1}})
         
         //get review info
         var reviewResult = await this.reviewService.getHighlevelReviewInfo({service : id})
