@@ -92,4 +92,6 @@ export var serviceItemSchema = new Schema<ServiceItem>({
             },
         }
     }]
-})
+}).index({"name" : "text" , "description" : "text" , "tags" : "text" })
+
+

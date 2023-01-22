@@ -67,8 +67,8 @@ export class ServiceService {
         return reviewCreateResult
     }
 
-    async getServiceReviews(serviceId: String, keyPoints?: String[]): Promise<ReviewDTO> {
-        var serviceReviews = await this.reviewService.getHighlevelReviewInfo({service: serviceId } , keyPoints)
+    async getServiceReviews(serviceId: String, keyPoints?: String[] , page? : number , size? : number): Promise<ReviewDTO> {
+        var serviceReviews = await this.reviewService.getHighlevelReviewInfo({service: serviceId } , keyPoints , page , size)
         // console.log("service reviews" , serviceReviews , serviceId)
         // var rating = this.helper.calculateRating(serviceReviews, keyPoints)
         // var reviewDTOResult = new ReviewDTO({ rating: rating, reviews: _.take(serviceReviews, 10) })
@@ -95,7 +95,7 @@ export class ServiceService {
         var updateResult = await this.serviceRepo.updateWithFilter({_id : id} , {$inc : {viewCount : 1}})
         
         //get review info
-        var reviewResult = await this.reviewService.getHighlevelReviewInfo({service : id})
+        var reviewResult = await this.reviewService.getHighlevelReviewInfo({service : id}, null , 1 , 5)
         result.reviewInfo = reviewResult
         return result;
         

@@ -6,7 +6,7 @@ import * as _ from "lodash"
 export interface IHelper {
     
     generateCouponCodes(amount: number);
-    generateCode(length: number, generatedCodes: String[])
+    generateCode(length: number, generatedCodes: String[] , dictionary? : String)
     calculateRating(reviews: Review[], keyPoints?: String[]): number
 }
 
@@ -44,9 +44,9 @@ export class Helper implements IHelper {
         } 
     }
 
-    generateCode(length: number, generatedCodes: String[]): String | undefined {
+    generateCode(length: number, generatedCodes: String[]  , dictionary?: String): String | undefined {
         var text = "";
-        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        var possible = dictionary ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
         for (var i = 0; i < length; i++) {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -66,7 +66,7 @@ export class Helper implements IHelper {
             reviews.forEach(review => {
                 var selectedKeyPoints = _.filter(review.keyPoints, kp => _.includes(keyPoints, kp.key))
                 if (selectedKeyPoints) {
-                    var keypointRating = _.divide(_.sumBy(_.map(selectedKeyPoints, kP => kP.rating), r => r), selectedKeyPoints.length)
+                    var keypointRating = _.divide(_.sumBy(_.map(selectedKeyPoints, kP => kP.rating), r => r), selectedKeyPoints?.length)
                     overallRating += keypointRating
                     reviewCount++
                 }
@@ -74,7 +74,7 @@ export class Helper implements IHelper {
         }
         else {
             reviews.forEach(review => {
-                var keypointRating = _.divide(_.sumBy(_.map(review.keyPoints, kP => kP.rating), r => r), review.keyPoints.length)
+                var keypointRating = _.divide(_.sumBy(_.map(review.keyPoints, kP => kP.rating), r => r), review?.keyPoints?.length)
                 overallRating += keypointRating
                 reviewCount++
             })

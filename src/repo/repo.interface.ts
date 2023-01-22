@@ -7,6 +7,8 @@ export interface IRepository<T> {
     findandSort(predicate: Object, sortPredicate: Object, limit?: number, page? : number, populateString?: any): Promise<T[]>
     findOne(preicate: Object, populateString?: String, incExc?: String): Promise<T | null>
 
+    search(query: String, limit: number , populate? : any) : Promise<T[]>
+
     add(data: any, upsert?: boolean): Promise<T>
     addMany(data: any): Promise<any>
     // addAll(date: any[]): Promise<InsertManyResult<T>>

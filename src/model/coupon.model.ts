@@ -25,6 +25,10 @@ export class Coupon {
 
     static ModelName = "Coupon"
 
+    constructor(data : Partial<Coupon>){
+        Object.assign(this, data);
+    }
+
 }
 
 export class CouponCode {

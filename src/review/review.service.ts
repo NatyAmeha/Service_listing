@@ -28,8 +28,8 @@ export class ReviewService {
         return result
     }
 
-    async getHighlevelReviewInfo(predicate : any, keyPoints?: String[]): Promise<ReviewDTO> {
-        var serviceReviews = await this.reviewRepo.findandSort(predicate , {dateCreated : -1})
+    async getHighlevelReviewInfo(predicate : any, keyPoints?: String[] , page: number = 1 , limit : number = 100): Promise<ReviewDTO> {
+        var serviceReviews = await this.reviewRepo.findandSort(predicate , {dateCreated : -1} , limit , page)
         var rating = this.helper.calculateRating(serviceReviews, keyPoints)
         var reviewDTOResult = new ReviewDTO({ rating: rating ?? 0, reviews: _.take(serviceReviews, 10) })
         return reviewDTOResult

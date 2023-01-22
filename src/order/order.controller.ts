@@ -1,14 +1,14 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Connection } from 'mongoose';
 import { GetUser } from 'src/auth/get_user.decorator';
 import { Role, RoleGuard } from 'src/auth/role.guard';
-import { OrderDTO } from 'src/dto/order.dto';
+import { OrderDTO, OrderStatusDTO } from 'src/dto/order.dto';
 import { Order } from 'src/model/order.model';
 import { User } from 'src/model/user.model';
 import { UserService } from 'src/user/user.service';
-import { AccountType } from 'src/utils/constants';
+import { AccountType, OrderStatus } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
 import { OrderService } from './order.service';
 
@@ -30,6 +30,9 @@ export class OrderController {
         })
         return result 
     }  
+
+
+    // GET requst ----------------------------------------------------------------
 
     @Get("user")
     @UseGuards(AuthGuard())
@@ -54,6 +57,17 @@ export class OrderController {
         var result = await this.orderService.getOrderDetails(orderId)
         return result
     }
+
+
+    // PUT request ---------------------------------------------------------------------------
+    @Put("/updateStatus")
+    async updateOrderStatus(@Query("id") orderId : String , @Body() orderStatusInfo : OrderStatusDTO){
+        //manipulate data
+        var updateResult = await this.orderService.updateOrderStatus(orderId , orderStatusInfo)
+        //send notification 
+        return updateResult
+    }
+
 
     
 

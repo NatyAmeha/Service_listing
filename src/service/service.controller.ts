@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Connection } from 'mongoose';
@@ -23,21 +23,13 @@ export class ServiceController {
     }
 
     @Get("/reviews") 
-    async getServiceReviewInfo(@Query("id") serviceId: String, @Query("key") key?: String) {
-
-        var reviewResult = await this.serviceService.getServiceReviews(serviceId, key?.split(","))
+    async getServiceReviewInfo(@Query("id") serviceId: String, @Query("key") key?: String , 
+    @Query("page" , ParseIntPipe) page: number = 1 , @Query("size" , ParseIntPipe) size: number = 20) {
+        var reviewResult = await this.serviceService.getServiceReviews(serviceId, key?.split(",") , page , size)
         return reviewResult;
     }
 
-    @Post("/review/add") 
-    @UseGuards(AuthGuard())
-    async createReview(@Body() reviewInfo: Review) {
-        var result = await Helper.runInTransaction(this.connection, async session => {
-            var reviewResult = await this.serviceService.createReview(reviewInfo)
-            return reviewResult;
-        })
-        return result
-    }
+    
 
     @Get("item/:id")
     async getServiceItemDetails(@Param("id") itemId: String) {
@@ -58,7 +50,7 @@ export class ServiceController {
         return servicesResult
     }
 
-    // post requests
+    // POST request -------------------------------------------------------------------------
 
     @Post("/create")
     @Role(AccountType.SERVICE_PROVIDER)
@@ -81,9 +73,19 @@ export class ServiceController {
         })
         return r
     }
+
+    @Post("/review/add") 
+    @UseGuards(AuthGuard())
+    async createReview(@Body() reviewInfo: Review) {
+        var result = await Helper.runInTransaction(this.connection, async session => {
+            var reviewResult = await this.serviceService.createReview(reviewInfo)
+            return reviewResult;
+        })
+        return result
+    }
     
 
-    //put requests
+    // PUT request ----------------------------------------------------------------------------------
 
     @Put("/edit")
     @Role(AccountType.SERVICE_PROVIDER)

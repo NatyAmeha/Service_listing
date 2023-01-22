@@ -62,7 +62,7 @@ export class BusinessService {
         var businessDTOResult = new BusinessDTO({ businessInfo: businessInfo, relatedBusinesses: relatedBusinesses, services: services })
 
         // get review info
-        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId })
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId } , null , 1 , 5)
 
         // await this.reviewRepo.findandSort({ business: businessId } , {dateCreated : -1})
         // var rating = this.helper.calculateRating(businessReview)
@@ -78,8 +78,8 @@ export class BusinessService {
         return businessDTOResult;
     } 
 
-    async getBusinessReviewDetails(businessId: String, keyPoints?: String[]): Promise<ReviewDTO> {
-        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints)
+    async getBusinessReviewDetails(businessId: String, keyPoints?: String[] , page? : number , size?: number): Promise<ReviewDTO> {
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints , page , size)
         return businessReview
     }
 

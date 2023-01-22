@@ -2,6 +2,7 @@ import { HydratedDocument, Schema, Types } from "mongoose"
 import { Address } from "./address.model"
 import { Contact } from "./contact.model"
 import { Coupon } from "./coupon.model"
+import { Review } from "./review.model"
 import { Service } from "./service.model"
 import { User } from "./user.model"
 
@@ -21,7 +22,7 @@ export class Business {
     contact?: Contact
     dateCreated? : Date
     creator? : String
-    reviews? : String[]
+    reviews? : String[] | Review[]
 
     static ModelName = "Business"
 }
@@ -57,6 +58,6 @@ export var businessSchema: Schema = new Schema<Business>({
         },
         default: []
     }],
-})
+}).index({"name" : "text" , "description" : "text"})
 
 export type BussinessDocument = HydratedDocument<Business>

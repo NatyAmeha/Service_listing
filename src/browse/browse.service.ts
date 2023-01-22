@@ -1,19 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { BrowseDTO } from 'src/dto/browse.dto';
 import { BusinessDTO } from 'src/dto/business.dto';
+import { SearchDTO } from 'src/dto/search.dto';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
 import { CouponRepository, ICouponRepo } from 'src/repo/coupon.repo';
 import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
+import { BusinessSearchHandler, ISearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.service';
 
 @Injectable()
-export class BrowseService {
+export class BrowseService  {
     constructor(
-
-        @Inject(CouponRepository.injectName) private couponRepo: ICouponRepo,
-        @Inject(ServiceRepository.injectName) private serviceRepo: IServiceRepo,
+        @Inject(CouponRepository.injectName) private couponRepo: ICouponRepo,        
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
+
+        @Inject(ServiceSearchHandler.INJECT_NAME) private serviceSearchHandler: ISearchHandler,
+        @Inject(BusinessSearchHandler.INJECT_NAME) private businessSearchHandler: ISearchHandler,
+        @Inject(ProductSearchHandler.INJECT_NAME) private productSearchHandler: ISearchHandler,
     ) { }
 
     async getBrowse(): Promise<BrowseDTO> {
@@ -40,4 +44,13 @@ export class BrowseService {
         return result
 
     }
+
+    async search(query : String) : Promise<SearchDTO>{
+         this.productSearchHandler.setNextHandler(this.serviceSearchHandler)
+         this.serviceSearchHandler.setNextHandler(this.businessSearchHandler)
+         var searchResult = await this.productSearchHandler.search(query.toString() , undefined , null)
+         
+         return searchResult
+    }
 }
+  

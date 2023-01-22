@@ -12,8 +12,9 @@ import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { Helper, IHelper } from 'src/utils/helper';
 import * as _ from 'lodash'
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
-import { OrderDTO } from 'src/dto/order.dto';
+import { OrderDTO, OrderStatusDTO } from 'src/dto/order.dto';
 import { Business } from 'src/model/business.model';
+import { OrderStatus } from 'src/utils/constants';
 
 @Injectable()
 export class OrderService {
@@ -41,7 +42,7 @@ export class OrderService {
             // check coupon availability and validity
             var date = new Date(Date.now())
             // generate order code
-            var codeResult = await this.helper.generateCode(6, [])
+            var codeResult = await this.helper.generateCode(6, [] , "0123456789")
             console.log("code result", codeResult, orderInfo.price)
             orderInfo.code = codeResult
 
@@ -87,6 +88,15 @@ export class OrderService {
             var result = await this.orderRepo.add(orderInfo)
             return result;
         }
+    }
+
+    async updateOrderStatus(orderId : String ,  orderStatusInfo : OrderStatusDTO): Promise<Boolean> {
+        var updateInfo : {status : String , price? : number} = {status : orderStatusInfo.status}
+        if(orderStatusInfo.finalPrice){
+            updateInfo.price = orderStatusInfo.finalPrice
+        }
+        var orderUpdateResult = await this.orderRepo.updateWithFilter({ user: orderId } , updateInfo)
+       return orderUpdateResult
     }
 
     async getOrderDetails(orderId: String): Promise<OrderDTO> {

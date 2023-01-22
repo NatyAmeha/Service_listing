@@ -12,3 +12,11 @@ export class OrderDTO{
         Object.assign(this, data);
     }
 }
+
+export class OrderStatusDTO{
+    status : String
+    finalPrice? : number
+    constructor(data : Partial<OrderDTO>){
+        Object.assign(this, data);
+    }
+}

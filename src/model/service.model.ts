@@ -23,7 +23,7 @@ export class Service {
     contact?: Contact
     coupons?: String[] | Coupon[]
     dateCreated?: Date
-    reviews?: String[]
+    reviews?: String[] | Review[]
     reviewPoints: String[]
 
     static ModelName = "Service"
@@ -64,4 +64,4 @@ export var serviceSchema = new Schema<Service>({
         },
         default: []
     }],
-})
+}).index({"name" : "text" , "description" : "text" , "tags" : "text" })

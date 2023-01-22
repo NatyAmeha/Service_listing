@@ -9,6 +9,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
 
     }
 
+
     addSession(sess: ClientSession) {
         this.session = sess
     }
@@ -48,7 +49,16 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             throw new InternalServerErrorException(null, ex.toString())
         }
     }
-    async findandSort(predicate: Object, sortPredicate: Object, limit: number=100 , page : number = 1, populateString?: any): Promise<T[]> {
+
+    async search(query: String, limit: number, populate?: any): Promise<T[]> {
+        var searchResult = await this.model
+            .find({ $text: { $search: query.toString() } }, { score: { $meta: "textScore" } })
+            .populate(populate)
+            .sort({ score: 1 }).limit(limit).lean() as T[]
+        return searchResult 
+    } 
+
+    async findandSort(predicate: Object, sortPredicate: Object, limit: number = 100, page: number = 1, populateString?: any): Promise<T[]> {
         try {
             var result = await this.model.find(predicate).sort(sortPredicate as any)
                 .limit(limit).session(this.session || null).lean() as T[]
@@ -121,7 +131,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     async updateWithFilter(predicate: Object, data: Object, strict: Boolean = false): Promise<Boolean> {
         try {
             var result = await this.model.updateOne(predicate, data)
-            .session(this.session || null).lean()
+                .session(this.session || null).lean()
             console.log("data is ", data, result)
             if (result.acknowledged) {
                 return true
