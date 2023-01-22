@@ -13,7 +13,9 @@ import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
 import { ReviewService } from 'src/review/review.service';
 import { Helper, IHelper } from 'src/utils/helper';
-import* as _ from "lodash"
+import * as _ from "lodash"
+import { Coupon } from 'src/model/coupon.model';
+import { CouponDTO } from 'src/dto/coupon.dto';
 
 @Injectable()
 export class ServiceService {
@@ -21,8 +23,8 @@ export class ServiceService {
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
         @Inject(ReviewRepository.injectName) private reviewRepo: IReviewRepo,
-        private reviewService : ReviewService,
-        @Inject(Helper.INJECT_NAME) private helper : IHelper) {
+        private reviewService: ReviewService,
+        @Inject(Helper.INJECT_NAME) private helper: IHelper) {
 
     }
 
@@ -60,15 +62,18 @@ export class ServiceService {
         return updateResult
     }
 
-    async createReview(reviewInfo: Review, session?: ClientSession): Promise<Review>{
+    async createReview(reviewInfo: Review, session: ClientSession): Promise<Review> {
+        this.reviewRepo.addSession(session)
+        this.serviceRepo.addSession(session)
+        this.businessRepo.addSession(session)
         var reviewCreateResult = await this.reviewRepo.add(reviewInfo)
         var serviceUpdateResult = await this.serviceRepo.updateWithFilter({ _id: reviewInfo.service }, { $push: { reviews: reviewCreateResult._id } })
         var businessUpdateREsult = await this.businessRepo.updateWithFilter({ _id: reviewInfo.business }, { $push: { reviews: reviewCreateResult._id } })
         return reviewCreateResult
     }
 
-    async getServiceReviews(serviceId: String, keyPoints?: String[] , page? : number , size? : number): Promise<ReviewDTO> {
-        var serviceReviews = await this.reviewService.getHighlevelReviewInfo({service: serviceId } , keyPoints , page , size)
+    async getServiceReviews(serviceId: String, keyPoints?: String[], page?: number, size?: number): Promise<ReviewDTO> {
+        var serviceReviews = await this.reviewService.getHighlevelReviewInfo({ service: serviceId }, keyPoints, page, size)
         // console.log("service reviews" , serviceReviews , serviceId)
         // var rating = this.helper.calculateRating(serviceReviews, keyPoints)
         // var reviewDTOResult = new ReviewDTO({ rating: rating, reviews: _.take(serviceReviews, 10) })
@@ -85,39 +90,45 @@ export class ServiceService {
         return updateResult
     }
 
-    async getServiceDetails(id: String) : Promise<ServiceDTO>{
-        var serviceInfo = await this.serviceRepo.get(id , ['serviceItems', "business"])
+    async getServiceDetails(id: String): Promise<ServiceDTO> {
+        var serviceInfo = await this.serviceRepo.get(id, ['serviceItems', "business", "coupons"])
         //get related services
         var relatedService = await this.serviceRepo.getRelatedServices(serviceInfo)
-        var result = new ServiceDTO({serviceInfo : serviceInfo , relatedServices : relatedService})
+        const { coupons, business, serviceItems, ...rest } = serviceInfo
+        var couponsDTO = this.helper.filterActiveCoupons(coupons as Coupon[])
+        var result = new ServiceDTO({
+            service: rest as Service, relatedServices: relatedService,
+            serviceItems: serviceItems as ServiceItem[], coupons: couponsDTO
+        })
 
         //update serviceview count
-        var updateResult = await this.serviceRepo.updateWithFilter({_id : id} , {$inc : {viewCount : 1}})
-        
+        var updateResult = await this.serviceRepo.updateWithFilter({ _id: id }, { $inc: { viewCount: 1 } })
+
         //get review info
-        var reviewResult = await this.reviewService.getHighlevelReviewInfo({service : id}, null , 1 , 5)
+        var reviewResult = await this.reviewService.getHighlevelReviewInfo({ service: id }, null, 1, 5)
         result.reviewInfo = reviewResult
+
         return result;
-        
+
     }
 
-    async getServiceItemDetails(serviceItemId : String) : Promise<ServiceItemDTO>{
-        var itemResult = await this.serviceItemRepo.get(serviceItemId , ["service" , "business"])
+    async getServiceItemDetails(serviceItemId: String): Promise<ServiceItemDTO> {
+        var itemResult = await this.serviceItemRepo.get(serviceItemId, ["service", "business"])
         var serviceInfo = itemResult.service as Service
         var businessINfo = itemResult.business as Business
-        var result = new ServiceItemDTO({serviceItem : itemResult , serviceInfo : serviceInfo , businessInfo : businessINfo})
+        var result = new ServiceItemDTO({ serviceItem: itemResult, serviceInfo: serviceInfo, businessInfo: businessINfo })
         return result;
     }
 
     async getServices(query?: String, pageIndex: number = 1, pageSize: number = 20): Promise<ServiceDTO[]> {
         var services: Service[] = []
         if (query) {
-            services = await this.serviceRepo.find({ name: query }, ['serviceItems', "business"] ,  10)
+            services = await this.serviceRepo.find({ name: query }, ['serviceItems', "business"], 10)
         }
-        else {            
-            services = await this.serviceRepo.find({} , ['serviceItems', "business"] , 10)
+        else {
+            services = await this.serviceRepo.find({}, ['serviceItems', "business"], 10)
         }
-        var result = services.map(ser => new ServiceDTO({serviceInfo : ser}))
+        var result = services.map(ser => new ServiceDTO({ service: ser }))
         return result;
     }
 

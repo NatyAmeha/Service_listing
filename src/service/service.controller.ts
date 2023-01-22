@@ -78,7 +78,7 @@ export class ServiceController {
     @UseGuards(AuthGuard())
     async createReview(@Body() reviewInfo: Review) {
         var result = await Helper.runInTransaction(this.connection, async session => {
-            var reviewResult = await this.serviceService.createReview(reviewInfo)
+            var reviewResult = await this.serviceService.createReview(reviewInfo , session)
             return reviewResult;
         })
         return result

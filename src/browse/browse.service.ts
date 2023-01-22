@@ -6,14 +6,15 @@ import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
 import { CouponRepository, ICouponRepo } from 'src/repo/coupon.repo';
 import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
-import { BusinessSearchHandler, ISearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.service';
+import { BusinessSearchHandler, ISearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.handler';
 
 @Injectable()
-export class BrowseService  {
+export class BrowseService {
     constructor(
-        @Inject(CouponRepository.injectName) private couponRepo: ICouponRepo,        
+        @Inject(CouponRepository.injectName) private couponRepo: ICouponRepo,
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
+        @Inject(ServiceRepository.injectName) private serviceRepo: IServiceRepo,
 
         @Inject(ServiceSearchHandler.INJECT_NAME) private serviceSearchHandler: ISearchHandler,
         @Inject(BusinessSearchHandler.INJECT_NAME) private businessSearchHandler: ISearchHandler,
@@ -45,12 +46,11 @@ export class BrowseService  {
 
     }
 
-    async search(query : String) : Promise<SearchDTO>{
-         this.productSearchHandler.setNextHandler(this.serviceSearchHandler)
-         this.serviceSearchHandler.setNextHandler(this.businessSearchHandler)
-         var searchResult = await this.productSearchHandler.search(query.toString() , undefined , null)
-         
-         return searchResult
+    async search(query: String): Promise<SearchDTO> {
+        this.productSearchHandler.setNextHandler(this.serviceSearchHandler)
+        this.serviceSearchHandler.setNextHandler(this.businessSearchHandler)
+        var searchResult = await this.productSearchHandler.search(query.toString(), {}, undefined, null)
+
+        return searchResult
     }
 }
-  

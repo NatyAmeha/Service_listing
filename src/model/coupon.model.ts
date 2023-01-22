@@ -13,6 +13,7 @@ export class Coupon {
     startDate?: Date
     endDate?: Date
     maxAmount?: number
+    totalUsed? : number
     discountAmount? : number
     businessName?: String
     serviceName?: String
@@ -55,6 +56,7 @@ export var couponSchema = new Schema<Coupon>({
             return item.startDate == null;
         }
     },
+    totalUsed: {type: Number , default : 0},
 
     discountAmount :{type : Number , default : 10},
     startDate: { type: Date },

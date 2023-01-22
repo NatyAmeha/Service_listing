@@ -50,9 +50,9 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         }
     }
 
-    async search(query: String, limit: number, populate?: any): Promise<T[]> {
+    async search(query: String, additionalQueryInfo: any = {} ,  limit?: number, populate?: any): Promise<T[]> {
         var searchResult = await this.model
-            .find({ $text: { $search: query.toString() } }, { score: { $meta: "textScore" } })
+            .find({...additionalQueryInfo ,  $text: { $search: query.toString() } }, { score: { $meta: "textScore" } })
             .populate(populate)
             .sort({ score: 1 }).limit(limit).lean() as T[]
         return searchResult 

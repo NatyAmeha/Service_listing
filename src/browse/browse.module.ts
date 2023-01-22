@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { BusinessModule } from 'src/business/business.module';
 import { OrderModule } from 'src/order/order.module';
 import { ServiceModule } from 'src/service/service.module';
-import { BusinessSearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.service';
+import { BusinessSearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.handler';
 import { BrowseController } from './browse.controller';
 import { BrowseService } from './browse.service';
 

@@ -42,7 +42,7 @@ export class OrderService {
             // check coupon availability and validity
             var date = new Date(Date.now())
             // generate order code
-            var codeResult = await this.helper.generateCode(6, [] , "0123456789")
+            var codeResult = await this.helper.generateCode(6, [], "0123456789")
             console.log("code result", codeResult, orderInfo.price)
             orderInfo.code = codeResult
 
@@ -70,6 +70,7 @@ export class OrderService {
                         //update coupon info
                         var codeIndex = couponAppliedToServiceItem.couponCodes.findIndex(cCode => cCode.used == false)
                         if (codeIndex > -1) {
+                            couponAppliedToServiceItem.totalUsed += 1
                             couponAppliedToServiceItem.couponCodes[codeIndex].used = true
                             var couponUpdateResult = await this.couponRepo.update({ _id: couponAppliedToServiceItem._id }, couponAppliedToServiceItem)
                             console.log("coupon update result", couponUpdateResult)
@@ -90,13 +91,13 @@ export class OrderService {
         }
     }
 
-    async updateOrderStatus(orderId : String ,  orderStatusInfo : OrderStatusDTO): Promise<Boolean> {
-        var updateInfo : {status : String , price? : number} = {status : orderStatusInfo.status}
-        if(orderStatusInfo.finalPrice){
+    async updateOrderStatus(orderId: String, orderStatusInfo: OrderStatusDTO): Promise<Boolean> {
+        var updateInfo: { status: String, price?: number } = { status: orderStatusInfo.status }
+        if (orderStatusInfo.finalPrice) {
             updateInfo.price = orderStatusInfo.finalPrice
         }
-        var orderUpdateResult = await this.orderRepo.updateWithFilter({ user: orderId } , updateInfo)
-       return orderUpdateResult
+        var orderUpdateResult = await this.orderRepo.updateWithFilter({ user: orderId }, updateInfo)
+        return orderUpdateResult
     }
 
     async getOrderDetails(orderId: String): Promise<OrderDTO> {

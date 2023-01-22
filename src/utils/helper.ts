@@ -1,25 +1,28 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import mongoose, { ClientSession, Connection, startSession } from "mongoose";
-import { CouponCode } from "src/model/coupon.model";
+import { Coupon, CouponCode } from "src/model/coupon.model";
 import { Review } from "src/model/review.model";
 import * as _ from "lodash"
+import { CouponDTO } from "src/dto/coupon.dto";
 export interface IHelper {
-    
+
     generateCouponCodes(amount: number);
-    generateCode(length: number, generatedCodes: String[] , dictionary? : String)
+    generateCode(length: number, generatedCodes: String[], dictionary?: String)
     calculateRating(reviews: Review[], keyPoints?: String[]): number
+    filterActiveCoupons(couponsInfo: Coupon[]): CouponDTO[]
 }
 
 @Injectable()
 export class Helper implements IHelper {
-    static  INJECT_NAME = "HELPER_INJECT"
-    generateCouponCodes(amount: number) : CouponCode[] {
+
+    static INJECT_NAME = "HELPER_INJECT"
+    generateCouponCodes(amount: number): CouponCode[] {
         var codesResult: String[] = []
         for (let index = 0; index < amount; index++) {
             var generatedCode = this.generateCode(6, codesResult)
             if (generatedCode) codesResult.push(generatedCode)
         }
-        return  codesResult.map(code => new CouponCode({value : code , used : false }))
+        return codesResult.map(code => new CouponCode({ value: code, used: false }))
     }
     static async runInTransaction<R>(connection: Connection, operation: (sesstion: ClientSession) => Promise<R>) {
         var session = await connection.startSession();
@@ -33,7 +36,7 @@ export class Helper implements IHelper {
             session.startTransaction();
             var result = await operation(session)
             await session.commitTransaction()
-            
+
             return result;
 
         } catch (ex) {
@@ -41,10 +44,10 @@ export class Helper implements IHelper {
             // await session.abortTransaction()
             await session.endSession()
             throw new InternalServerErrorException("", "Transaction error occurred")
-        } 
+        }
     }
 
-    generateCode(length: number, generatedCodes: String[]  , dictionary?: String): String | undefined {
+    generateCode(length: number, generatedCodes: String[], dictionary?: String): String | undefined {
         var text = "";
         var possible = dictionary ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
@@ -80,6 +83,13 @@ export class Helper implements IHelper {
             })
         }
         return overallRating / reviewCount
-       
+
+    }
+
+    filterActiveCoupons(coupons: Coupon[]): CouponDTO[] {
+        var couponsDTOResult = coupons
+            .filter(coupon => (coupon.totalUsed < coupon.maxAmount) || (coupon.endDate > new Date(Date.now())))
+            .map(cp => new CouponDTO({ couponInfo: cp }))
+            return couponsDTOResult
     }
 }

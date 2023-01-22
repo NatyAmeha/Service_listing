@@ -18,7 +18,7 @@ import { Helper, IHelper } from "src/utils/helper"
 
 export interface ISearchHandler {
     setNextHandler(handler: ISearchHandler): void
-    search(query: string, previousData?: SearchDTO, user?: User): Promise<SearchDTO>
+    search(query: string , additionalQueryInfo?: any , previousData?: SearchDTO, user?: User): Promise<SearchDTO>
 }
 
 
@@ -37,10 +37,10 @@ export class ServiceSearchHandler implements ISearchHandler {
         this.nextSearchHandler = handler
     }
 
-    async search(query: string, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
+    async search(query: string , additionalQueryInfo?: any , previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var appendedSearchData: SearchDTO = {}
         var serviceResult: Service[] = []
-        serviceResult = await this.serviceRepo.search(query, 100, ['reviews', 'coupons'])
+        serviceResult = await this.serviceRepo.search(query , additionalQueryInfo, 100, ['reviews', 'coupons'])
         if (serviceResult.length == 0) {
             var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews', 'coupons'])
             serviceResult = topServices
@@ -51,7 +51,7 @@ export class ServiceSearchHandler implements ISearchHandler {
             var totalRating = this.helper.calculateRating(reviews as Review[])
             var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: totalRating })
             var couponsInfo = coupons.map(coupon => new CouponDTO({ couponInfo: coupon }))
-            return new ServiceDTO({ serviceInfo: rest, reviewInfo: reviewDTO, coupons: couponsInfo })
+            return new ServiceDTO({ service: rest, reviewInfo: reviewDTO, coupons: couponsInfo })
         })
         var searchData: SearchDTO = { services: serviceDTOResult }
         appendedSearchData = { ...previousData, ...searchData }
@@ -59,7 +59,7 @@ export class ServiceSearchHandler implements ISearchHandler {
 
         if (this.nextSearchHandler) {
 
-            return await this.nextSearchHandler.search(query, appendedSearchData, user)
+            return await this.nextSearchHandler.search(query , additionalQueryInfo, appendedSearchData, user)
         }
         else return appendedSearchData
     }
@@ -80,10 +80,10 @@ export class BusinessSearchHandler implements ISearchHandler {
         this.nextSearchHandler = handler
     }
 
-    async search(query: string, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
+    async search(query: string, additionalQueryInfo?: any , previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var appendedSearchData: SearchDTO = {}
         var businessResult: Business[] = []
-        businessResult = await this.businessRepo.search(query, 100, ['reviews'])
+        businessResult = await this.businessRepo.search(query , additionalQueryInfo, 100, ['reviews'])
         if (businessResult.length == 0) {
             var topBusinesses = await this.businessRepo.findandSort({}, { likeCount: -1 }, 10, 1, ['reviews'])
 
@@ -100,7 +100,7 @@ export class BusinessSearchHandler implements ISearchHandler {
         appendedSearchData = { ...previousData, ...searchData }
 
         if (this.nextSearchHandler) {
-            return await this.nextSearchHandler.search(query, appendedSearchData, user)
+            return await this.nextSearchHandler.search(query , additionalQueryInfo, appendedSearchData, user)
         }
         else return appendedSearchData
     }
@@ -121,9 +121,9 @@ export class ProductSearchHandler implements ISearchHandler {
         this.nextSearchHandler = handler
     }
 
-    async search(query: string, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
+    async search(query: string, additionalQueryInfo?: any , previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var productResult : ServiceItem[] = []
-        productResult = await this.serviceItemRepo.search(query , 100)
+        productResult = await this.serviceItemRepo.search(query , additionalQueryInfo , 100)
         if(productResult.length == 0){
            var topServiceItem = await  this.serviceItemRepo.findandSort({} , {viewCount : -1} , 10 , 1)
            productResult = topServiceItem
@@ -133,7 +133,7 @@ export class ProductSearchHandler implements ISearchHandler {
         var appendedSearchData: SearchDTO = { ...previousData, ...searchData }
 
         if (this.nextSearchHandler) {
-            return await this.nextSearchHandler.search(query, appendedSearchData, user)
+            return await this.nextSearchHandler.search(query , additionalQueryInfo, appendedSearchData, user)
         }
         else return appendedSearchData
     }

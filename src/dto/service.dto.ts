@@ -4,7 +4,7 @@ import { CouponDTO } from "./coupon.dto";
 import { ReviewDTO } from "./review.dto";
 
 export class ServiceDTO{
-    serviceInfo? : Service
+    service? : Service
     serviceItems? : ServiceItem[]
     reviewInfo? : ReviewDTO
     relatedServices? : ServiceDTO[]

@@ -20,12 +20,12 @@ export class ServiceRepository extends MongodbRepo<ServiceDocument> implements I
     async getServiceDTo(serviceId: String): Promise<ServiceDTO> {
         var result : ServiceDTO;
         var serviceResult = await this.get(serviceId , ['serviceItems', "business"]) as Service
-            result = new ServiceDTO({serviceInfo : serviceResult})
+            result = new ServiceDTO({service : serviceResult})
         return result;
     }
     async getRelatedServices(serviceInfo: Service): Promise<ServiceDTO[]> {
         var serviceResult = await this.find({ name: serviceInfo.name }, ['serviceItems', "business"], 10)
-        var result = await serviceResult.map(  service =>  new ServiceDTO({serviceInfo : service}))
+        var result = await serviceResult.map(  service =>  new ServiceDTO({service : service}))
         return result;
     }
 }

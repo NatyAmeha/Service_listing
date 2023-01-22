@@ -12,11 +12,14 @@ import { Helper, IHelper } from 'src/utils/helper';
 import * as _ from "lodash"
 import { ReviewService } from 'src/review/review.service';
 import { User } from 'src/model/user.model';
+import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
+import { ServiceItemDTO } from 'src/dto/service_item.dto';
 
 @Injectable()
 export class BusinessService {
     constructor(@Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
         @Inject(UserRepository.injectName) private userRepo: IUserRepo,
+        @Inject(ServiceItemRepository.injectName) private serviceItemRepo : IServiceItemRepo,
         @Inject(Helper.INJECT_NAME) private helper: IHelper,
         private reviewService: ReviewService) {
 
@@ -45,7 +48,7 @@ export class BusinessService {
         else {
             businessResult = await this.businessRepo.getAll(pageIndex, pageSize)
         }
-        return businessResult;
+        return businessResult; 
     }
 
     async editBusiness(businessId: String, newInfo: Business): Promise<Boolean> {
@@ -57,7 +60,7 @@ export class BusinessService {
     async getBusinessDetails(businessId: String, user?: User): Promise<BusinessDTO> {
         //get businessInfo
         var businessInfo = await this.businessRepo.get(businessId, "services")
-        var services = businessInfo.services.map(service => new ServiceDTO({ serviceInfo: service }))
+        var services = businessInfo.services.map(service => new ServiceDTO({ service: service }))
         var relatedBusinesses = await this.businessRepo.getRelatedBusiness(businessInfo)
         var businessDTOResult = new BusinessDTO({ businessInfo: businessInfo, relatedBusinesses: relatedBusinesses, services: services })
 
@@ -70,7 +73,10 @@ export class BusinessService {
         businessDTOResult.reviewInfo = businessReview
 
         //get trending products
- 
+        var products = await this.serviceItemRepo.findandSort({business : businessId} , {viewCount : -1} , 10 , 1)
+        var productDTOs = products.map(product => new ServiceItemDTO({serviceItem : product}))
+        businessDTOResult.trendingProducts = productDTOs
+        
         // check business is in user's favorite
         if (user) {
             businessDTOResult.isInUserFavorite = user.favoriteBusinesses.findIndex(id => id.toString() == businessId.toString()) > -1
