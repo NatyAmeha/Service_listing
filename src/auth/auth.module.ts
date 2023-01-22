@@ -7,6 +7,7 @@ import { UserRepository, IUserRepo } from 'src/repo/user.repo';
 import { JwtStrategyService } from 'src/services/jwt.service';
 import { Constants } from 'src/utils/constants';
 import { AuthController } from './auth.controller';
+import { AuthNotRequired } from './auth.middleware';
 import { AuthService } from './auth.service';
 import { RoleGuard } from './role.guard';
 
@@ -26,11 +27,11 @@ import { RoleGuard } from './role.guard';
        provide : JwtStrategyService.JWT_STRATEGY_INJECT,
        useClass : JwtStrategyService
     },
-    AuthService,RoleGuard
+    AuthService,RoleGuard,AuthNotRequired
   ],
   exports : [
     MongooseModule,
     
-    PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName , RoleGuard]
+    PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName , RoleGuard , AuthNotRequired]
 })
 export class AuthModule { }

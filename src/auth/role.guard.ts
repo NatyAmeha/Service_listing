@@ -14,7 +14,7 @@ export class RoleGuard implements CanActivate {
         var req = context.switchToHttp().getRequest()
         var user = req.user as User
         var requiredRole = this.reflector.getAllAndOverride<AccountType[]>("roles", [context.getClass(), context.getHandler()])
-        console.log(requiredRole)
+        
         if (!requiredRole) {
             return true;
         }

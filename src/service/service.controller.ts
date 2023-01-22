@@ -1,11 +1,14 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Connection } from 'mongoose';
+import { AuthNotRequired } from 'src/auth/auth.middleware';
+import { GetUser } from 'src/auth/get_user.decorator';
 import { Role, RoleGuard } from 'src/auth/role.guard';
 import { Review } from 'src/model/review.model';
 import { Service } from 'src/model/service.model';
 import { ServiceItem } from 'src/model/service_item.model';
+import { User } from 'src/model/user.model';
 import { ReviewService } from 'src/review/review.service';
 import { AccountType } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
@@ -19,8 +22,9 @@ export class ServiceController {
 
     }
 
-    @Get("/reviews")
+    @Get("/reviews") 
     async getServiceReviewInfo(@Query("id") serviceId: String, @Query("key") key?: String) {
+
         var reviewResult = await this.serviceService.getServiceReviews(serviceId, key?.split(","))
         return reviewResult;
     }

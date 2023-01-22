@@ -10,6 +10,7 @@ export class BusinessDTO{
     reviewInfo? : ReviewDTO
     relatedBusinesses? : Business[]
     trendingProducts? : ServiceItem[]
+    isInUserFavorite? : Boolean
     constructor(data : Partial<BusinessDTO>){
         Object.assign(this, data);
     }

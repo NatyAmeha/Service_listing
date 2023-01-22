@@ -3,6 +3,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { result } from 'lodash';
 import { Connection } from 'mongoose';
+import { AuthNotRequired } from 'src/auth/auth.middleware';
 import { GetUser } from 'src/auth/get_user.decorator';
 import { Role, RoleGuard } from 'src/auth/role.guard';
 import { Business } from 'src/model/business.model';
@@ -33,6 +34,9 @@ export class BusinessController {
         return result
     }
 
+
+    // Get requests -----------------------------------------------------------------------------
+
     @Get("/reviews")
     async getBusinessReviewInfo(@Query("id") business: String, @Query("key") key?: String) {
         var reviewResult = await this.businesService.getBusinessReviewDetails(business, key?.split(","))
@@ -40,9 +44,11 @@ export class BusinessController {
     }
 
     @Get("/:id")
-    async getBusinessDetails(@Param("id") businessId: String) {
-        var businessResult = await this.businesService.getBusinessDetails(businessId)
+    @UseGuards(AuthNotRequired)
+    async getBusinessDetails(@Param("id") businessId: String , @GetUser() user? : User) {
+        var businessResult = await this.businesService.getBusinessDetails(businessId , user)
         return businessResult
+        
     }
 
     @Get("/")
@@ -50,6 +56,9 @@ export class BusinessController {
         var businessResult = await this.businesService.getBusinesses(query, page, size)
         return businessResult
     }
+
+
+    // put requests ------------------------------------------------------------------------------------------
 
     @Put("/edit")
     @Role(AccountType.SERVICE_PROVIDER)
@@ -71,7 +80,7 @@ export class BusinessController {
     }
  
     @Put("/unlike")
-    @UseGuards(AuthGuard())
+    @UseGuards(AuthGuard("pass"))
     async removeBusinessFromFavorite(@GetUser() user : User ,  @Query("id") businessId: String) {
         var result = await Helper.runInTransaction(this.connection , async session =>{
             var updateResult = await this.businesService.removeFromFavorite( businessId , user._id , session)

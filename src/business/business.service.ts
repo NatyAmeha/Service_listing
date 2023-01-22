@@ -11,6 +11,7 @@ import { IUserRepo, UserRepository } from 'src/repo/user.repo';
 import { Helper, IHelper } from 'src/utils/helper';
 import * as _ from "lodash"
 import { ReviewService } from 'src/review/review.service';
+import { User } from 'src/model/user.model';
 
 @Injectable()
 export class BusinessService {
@@ -53,7 +54,7 @@ export class BusinessService {
         return updateResult
     }
 
-    async getBusinessDetails(businessId: String): Promise<BusinessDTO> {
+    async getBusinessDetails(businessId: String, user?: User): Promise<BusinessDTO> {
         //get businessInfo
         var businessInfo = await this.businessRepo.get(businessId, "services")
         var services = businessInfo.services.map(service => new ServiceDTO({ serviceInfo: service }))
@@ -69,9 +70,13 @@ export class BusinessService {
         businessDTOResult.reviewInfo = businessReview
 
         //get trending products
-
+ 
+        // check business is in user's favorite
+        if (user) {
+            businessDTOResult.isInUserFavorite = user.favoriteBusinesses.findIndex(id => id.toString() == businessId.toString()) > -1
+        }
         return businessDTOResult;
-    }
+    } 
 
     async getBusinessReviewDetails(businessId: String, keyPoints?: String[]): Promise<ReviewDTO> {
         var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints)
@@ -82,7 +87,7 @@ export class BusinessService {
         this.userRepo.addSession(session)
         this.businessRepo.addSession(session)
         var result = await this.businessRepo.updateWithFilter({ _id: businessId }, { $inc: { likeCount: 1 } })
-        var userUpdateResult = await this.userRepo.updateWithFilter({_id : userId} , {$addToSet : {favoriteBusinesses : businessId}})
+        var userUpdateResult = await this.userRepo.updateWithFilter({ _id: userId }, { $addToSet: { favoriteBusinesses: businessId } })
         return userUpdateResult
     }
 
@@ -90,7 +95,7 @@ export class BusinessService {
         this.userRepo.addSession(session)
         this.businessRepo.addSession(session)
         var result = await this.businessRepo.updateWithFilter({ _id: businessId }, { $inc: { likeCount: -1 } })
-        var userUpdateResult = await this.userRepo.updateWithFilter({_id : userId} , {$pull : {favoriteBusinesses : businessId}})
+        var userUpdateResult = await this.userRepo.updateWithFilter({ _id: userId }, { $pull: { favoriteBusinesses: businessId } })
         return userUpdateResult
     }
 
