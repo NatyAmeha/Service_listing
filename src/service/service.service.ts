@@ -90,6 +90,11 @@ export class ServiceService {
         return updateResult
     }
 
+    async updateServiceStatus(id: String, serviceStatus : Boolean): Promise<Boolean> {
+        var updateResult = await this.serviceRepo.updateWithFilter({ _id: id }, {active : serviceStatus})
+        return updateResult
+    }
+
     async getServiceDetails(id: String): Promise<ServiceDTO> {
         var serviceInfo = await this.serviceRepo.get(id, ['serviceItems', "business", "coupons"])
         //get related services

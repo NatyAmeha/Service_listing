@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Connection } from 'mongoose';
@@ -107,6 +107,14 @@ export class ServiceController {
             return result;
         })
         return r
+    }
+
+    @Put("/status/update")
+    @Role(AccountType.SERVICE_PROVIDER , AccountType.ADMIN)
+    @UseGuards(AuthGuard(), RoleGuard)
+    async updateServiceActiveStatus(@Query("id") serviceId: String, @Query("status" , ParseBoolPipe) activeStatus : Boolean) {
+        var result = await this.serviceService.updateServiceStatus(serviceId, activeStatus)
+        return result;
     }
 
     @Put("review/update")
