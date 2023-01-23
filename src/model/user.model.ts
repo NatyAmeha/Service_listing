@@ -17,6 +17,7 @@ export class User {
     addresses?: Address[]
 
     userBusinesses : String[]
+    favoriteProducts : String[]
 
 
     static ModelName = "User"
@@ -33,6 +34,7 @@ export var userSchema : Schema = new mongoose.Schema<User>({
     dateCreate: { type: Date },
     orders: { type: [Types.ObjectId], default: [] },
     userBusinesses : {type : [Types.ObjectId] , ref : "Business" , default : [] },
+    favoriteProducts : {type : [Types.ObjectId] , ref : "ServiceItem" , default : []},
     addresses: [{
         type: {
             location: {

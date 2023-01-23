@@ -43,7 +43,7 @@ export class OrderService {
             var date = new Date(Date.now())
             // generate order code
             var codeResult = await this.helper.generateCode(6, [], "0123456789")
-            console.log("code result", codeResult, orderInfo.price)
+
             orderInfo.code = codeResult
 
             //check coupon codes
@@ -114,11 +114,15 @@ export class OrderService {
         return userOrderResult
     }
 
-    async getBusinessOrders(businessId: String): Promise<OrderDTO[]> {
-        var orderREsults = await this.orderRepo.find({ "items.business": businessId }, ["items.serviceItem"])
+    async getBusinessOrders(businessIds: String[]): Promise<OrderDTO[]> {
+        var orders: OrderDTO[] = []
+        for await (const bId of businessIds) {
+            var orderREsults = await this.orderRepo.find({ "items.business": bId }, ["items.serviceItem"])
+            var businessOrderResult = await orderREsults.map(order => new OrderDTO({ order: order }))
+            orders.push(...businessOrderResult)
+        }
+        return orders
 
-        var businessOrderResult = await orderREsults.map(order => new OrderDTO({ order: order }))
-        return businessOrderResult
     }
 
     async createCoupon(couponInfo: Coupon, session?: ClientSession): Promise<Coupon> {

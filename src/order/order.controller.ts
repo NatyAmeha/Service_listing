@@ -37,7 +37,6 @@ export class OrderController {
     @Get("user")
     @UseGuards(AuthGuard())
     async getUserOrders(@GetUser() user : User ){
-       
         var result = await this.orderService.getUserOrders(user._id)
         return result
     }
@@ -46,7 +45,7 @@ export class OrderController {
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard() , RoleGuard)
     async getBusinessOrder(@Query("id") businessId : String) : Promise<OrderDTO[]>{
-        var result = await this.orderService.getBusinessOrders(businessId)
+        var result = await this.orderService.getBusinessOrders([businessId])
         return result
     }
 
