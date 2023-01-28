@@ -45,6 +45,14 @@ export class CouponService {
 
     }
 
+    async getCouponDetails(couponId : String): Promise<CouponDTO> {
+        var result = await this.couponRepo.get(couponId, ["service" , "business"])
+        const {service , business , ...rest} = result
+        var couponsDtoResult = new CouponDTO({couponInfo :  rest , services : service as Service[] , business : business as Business  })
+        return couponsDtoResult
+
+    }
+
     async updateCouponCodeStatus(couponId: String, couponCode: CouponCode): Promise<Boolean> {
         var couponInfo = await this.couponRepo.get(couponId)
         if (couponInfo) {

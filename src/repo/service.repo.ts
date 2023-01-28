@@ -24,8 +24,11 @@ export class ServiceRepository extends MongodbRepo<ServiceDocument> implements I
         return result;
     }
     async getRelatedServices(serviceInfo: Service): Promise<ServiceDTO[]> {
-        var serviceResult = await this.find({ name: serviceInfo.name }, ['serviceItems', "business"], 10)
-        var result = await serviceResult.map(  service =>  new ServiceDTO({service : service}))
+        var serviceResult = await this.find({ name: serviceInfo.name }, ['serviceItems', "business"], 10) as Service[]
+        var result = await serviceResult.map(  service =>  {
+            const {business , serviceItems , ...rest} = service
+            return new ServiceDTO({service : rest as Service ,  })
+        })
         return result;
     }
 }

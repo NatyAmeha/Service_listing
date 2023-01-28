@@ -14,6 +14,9 @@ import { ReviewService } from 'src/review/review.service';
 import { User } from 'src/model/user.model';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
 import { ServiceItemDTO } from 'src/dto/service_item.dto';
+import { Service } from 'src/model/service.model';
+import { Coupon } from 'src/model/coupon.model';
+import { CouponDTO } from 'src/dto/coupon.dto';
 
 @Injectable()
 export class BusinessService {
@@ -59,10 +62,16 @@ export class BusinessService {
 
     async getBusinessDetails(businessId: String, user?: User): Promise<BusinessDTO> {
         //get businessInfo
-        var businessInfo = await this.businessRepo.get(businessId, "services")
-        var services = businessInfo.services.map(service => new ServiceDTO({ service: service }))
+        var businessInfo = await this.businessRepo.get(businessId, ["services" , "coupons" , "services.coupons"] )
+        const {services , coupons , ...rest} = businessInfo;
+        
+        var couponsDTO =  (coupons as Coupon[]).map(c => new CouponDTO({couponInfo : c}))
+        
+        var servicesDTOs = services.map(service => new ServiceDTO({ service: service  }))
         var relatedBusinesses = await this.businessRepo.getRelatedBusiness(businessInfo)
-        var businessDTOResult = new BusinessDTO({ businessInfo: businessInfo, relatedBusinesses: relatedBusinesses, services: services })
+        
+        var businessDTOResult = new BusinessDTO({ businessInfo: rest, 
+            relatedBusinesses: relatedBusinesses, services: servicesDTOs , coupons : couponsDTO })
 
         // get review info
         var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId } , null , 1 , 5)
@@ -81,7 +90,7 @@ export class BusinessService {
         if (user) {
             businessDTOResult.isInUserFavorite = user.favoriteBusinesses.findIndex(id => id.toString() == businessId.toString()) > -1
         }
-        return businessDTOResult;
+        return businessDTOResult; 
     } 
 
     async getBusinessReviewDetails(businessId: String, keyPoints?: String[] , page? : number , size?: number): Promise<ReviewDTO> {

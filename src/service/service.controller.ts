@@ -31,14 +31,16 @@ export class ServiceController {
 
     
 
-    @Get("item/:id")
+    @Get("/product/:id")
     async getServiceItemDetails(@Param("id") itemId: String) {
+        console.log("item id " , itemId)
         var serviceItemResult = await this.serviceService.getServiceItemDetails(itemId)
         return serviceItemResult
     }
 
     @Get("/:id")
     async getServiceDetails(@Param("id") businessId: String) {
+        console.log("item id service " , businessId)
         var serviceResult = await this.serviceService.getServiceDetails(businessId)
         return serviceResult
 

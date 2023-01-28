@@ -104,6 +104,7 @@ export class ServiceService {
         var result = new ServiceDTO({
             service: rest as Service, relatedServices: relatedService,
             serviceItems: serviceItems as ServiceItem[], coupons: couponsDTO
+            
         })
 
         //update serviceview count
@@ -119,9 +120,8 @@ export class ServiceService {
 
     async getServiceItemDetails(serviceItemId: String): Promise<ServiceItemDTO> {
         var itemResult = await this.serviceItemRepo.get(serviceItemId, ["service", "business"])
-        var serviceInfo = itemResult.service as Service
-        var businessINfo = itemResult.business as Business
-        var result = new ServiceItemDTO({ serviceItem: itemResult, serviceInfo: serviceInfo, businessInfo: businessINfo })
+        const {service , business , ...rest} = itemResult
+        var result = new ServiceItemDTO({ serviceItem: rest, serviceInfo: service as Service, businessInfo: business as Business })
         return result;
     }
 
@@ -129,7 +129,7 @@ export class ServiceService {
         var services: Service[] = []
         if (query) {
             services = await this.serviceRepo.find({ name: query }, ['serviceItems', "business"], 10)
-        }
+        }  
         else {
             services = await this.serviceRepo.find({}, ['serviceItems', "business"], 10)
         }

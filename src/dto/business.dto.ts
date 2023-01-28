@@ -10,7 +10,7 @@ export class BusinessDTO{
     businessInfo? : Business
     services? : ServiceDTO[]
     reviewInfo? : ReviewDTO
-    relatedBusinesses? : Business[]
+    relatedBusinesses? : BusinessDTO[]
     trendingProducts? : ServiceItemDTO[]
     isInUserFavorite? : Boolean
     coupons? : CouponDTO[]

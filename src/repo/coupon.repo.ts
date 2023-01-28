@@ -30,7 +30,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
                     endDate: { $gte: new Date(endDate) },
                     "couponCodes": { $elemMatch: { used: false } }
                 },
-            ).populate(['service', 'business'])
+            ).populate(['service', 'business']).lean() as Coupon[]
         }
         else{
             var result = await this.couponModel.find(
@@ -38,7 +38,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
                     endDate: { $gte: new Date(endDate) },
                     "couponCodes": { $elemMatch: { used: false } }
                 },
-            ).populate(['service', 'business'])
+            ).populate(['service', 'business']).lean()as Coupon[]
         }
             
         
@@ -47,14 +47,14 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
                 endDate: { $gte: new Date(endDate) },
                 "couponCodes": { $elemMatch: { used: false } }
             },
-        ).populate(['service', 'business'])
+        ).populate(['service', 'business']).lean() as Coupon[]
+
         var couponResult = await result.map(coupon => {
-            const { service, business, ...remaining } = coupon
-            coupon.service = (service as Service)._id
-            coupon.business = (business as Business)._id
+            const { service, business, ...rest } = coupon
+            
             return new CouponDTO({
-                couponInfo: coupon,
-                services: [service as Service],
+                couponInfo: rest,
+                services: service as Service[],
                 business: business as Business
             })
         })
@@ -71,11 +71,10 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
 
         var couponDtoResult = result.map(coupon => {
             const { service, business, ...remaining } = coupon
-            coupon.service = (service as Service)._id
-            coupon.business = (business as Business)._id
+            
             return new CouponDTO({
-                couponInfo: coupon,
-                services: [service as Service],
+                couponInfo: remaining,
+                services: service as Service[],
                 business: business as Business
             })
         })
@@ -91,12 +90,11 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             }
         }).populate(['service', 'business']) as Coupon[]
         var couponDtoResult = result.map(coupon => {
-            const { service, business, ...remaining } = coupon
-            coupon.service = (service as Service)._id
-            coupon.business = (business as Business)._id
+            const { service, business, ...rest } = coupon
+            
             return new CouponDTO({
-                couponInfo: coupon,
-                services: [service as Service],
+                couponInfo: rest,
+                services: service as Service[],
                 business: business as Business
             })
         })

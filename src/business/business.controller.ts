@@ -48,6 +48,7 @@ export class BusinessController {
     @Get("/:id")
     @UseGuards(AuthNotRequired)
     async getBusinessDetails(@Param("id") businessId: String, @GetUser() user?: User) {
+        console.log("business id" , businessId)
         var businessResult = await this.businesService.getBusinessDetails(businessId, user)
         return businessResult
 

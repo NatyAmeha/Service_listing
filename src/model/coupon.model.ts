@@ -18,7 +18,7 @@ export class Coupon {
     businessName?: String
     serviceName?: String
     business?: String | Business
-    service?: String | Service
+    service?: String[] | Service[]
     couponCodes?: CouponCode[]
     isActive?: Boolean
     dateCreated?: Date
@@ -69,7 +69,7 @@ export var couponSchema = new Schema<Coupon>({
     businessName: { type: String, required: true },
     serviceName: { type: String, required: true },
     business: { type: Types.ObjectId, required: true, ref: "Business" },
-    service: { type: Types.ObjectId, required: true, ref: "Service" },
+    service: { type: [Types.ObjectId], required: true, ref: "Service" , default : [] },
     couponCodes: [{
         type: {
             value: { type: String },

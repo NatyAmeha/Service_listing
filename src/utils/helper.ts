@@ -63,7 +63,7 @@ export class Helper implements IHelper {
     }
 
     calculateRating(reviews: Review[], keyPoints?: String[]): number {
-        var overallRating = 0;
+        var overallRating = 0.0;
         var reviewCount = 0;
         if (keyPoints) {
             reviews.forEach(review => {
@@ -82,7 +82,7 @@ export class Helper implements IHelper {
                 reviewCount++
             })
         }
-        return overallRating / reviewCount
+        return _.divide(overallRating , reviewCount)
 
     }
 

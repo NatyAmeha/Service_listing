@@ -16,6 +16,9 @@ export class Review {
 export class KeyReview {
     key?: String
     rating?: number
+    constructor(data : Partial<KeyReview>){
+        Object.assign(this, data);
+    }
 
 }
 

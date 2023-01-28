@@ -12,15 +12,15 @@ import { BrowseService } from './browse.service';
 export class BrowseController {
 
     constructor(private browseService : BrowseService){}
-
+ 
     
 
     @Get("/search")
     async search(@Query("query") query : String): Promise<SearchDTO>{        
         var result = await this.browseService.search(query)
         return result;
-    }
-     
+    } 
+      
 
     @Get("/dashboard")
     @Role(AccountType.SERVICE_PROVIDER) 

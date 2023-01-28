@@ -9,4 +9,4 @@ export class ReviewDTO{
     constructor(data : Partial<ReviewDTO>){
         Object.assign(this, data);
     }
-}
+}   

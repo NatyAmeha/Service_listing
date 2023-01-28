@@ -30,6 +30,7 @@ export class Order {
 }
 
 export class OrderItem {
+    _id : String
     serviceItem?: String | ServiceItem
     productInfo: ServiceItem
     qty?: number

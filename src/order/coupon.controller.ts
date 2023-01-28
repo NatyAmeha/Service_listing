@@ -1,7 +1,7 @@
 import { Get, Post } from "@nestjs/common";
 import { Controller } from "@nestjs/common/decorators/core/controller.decorator";
 import { UseGuards } from "@nestjs/common/decorators/core/use-guards.decorator";
-import { Body, Query } from "@nestjs/common/decorators/http/route-params.decorator";
+import { Body, Param, Query } from "@nestjs/common/decorators/http/route-params.decorator";
 import { InjectConnection } from "@nestjs/mongoose";
 import { AuthGuard } from "@nestjs/passport";
 import { Connection } from "mongoose";
@@ -35,6 +35,12 @@ export class CouponController {
         var currentDate = new Date(Date.now())
         var result = await this.couponService.getActiveCoupons(currentDate , page)
         return result;
+    }
+
+    @Get("/:id")
+    async getCouponDetails(@Param("id") couponId : String){
+        var couponResult = await this.couponService.getCouponDetails(couponId)
+        return couponResult
     }
 
     

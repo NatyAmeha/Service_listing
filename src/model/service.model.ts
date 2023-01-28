@@ -18,13 +18,13 @@ export class Service {
     viewCount?: number
     active?: Boolean
     creator?: String
-    serviceItems: String[] | ServiceItem[]
+    serviceItems?: String[] | ServiceItem[]
     addresses?: Address[]
     contact?: Contact
     coupons?: String[] | Coupon[]
     dateCreated?: Date
     reviews?: String[] | Review[]
-    reviewPoints: String[]
+    reviewPoints?: String[]
 
     static ModelName = "Service"
 }
