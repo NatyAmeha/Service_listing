@@ -18,7 +18,9 @@ export class BrowseController {
     @Get("/search")
     async search(@Query("query") query : String): Promise<SearchDTO>{        
         var result = await this.browseService.search(query)
+        console.log("serchdata " , result)
         return result;
+
     } 
       
 

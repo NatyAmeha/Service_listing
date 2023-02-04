@@ -32,22 +32,22 @@ export class ReviewService {
         var rating = 0.0
         var keyReviewPOint: String[] = []
         var ratingByKey: KeyReview[] = []
-        var serviceReviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 }, limit, page)
-        serviceReviews.forEach(review => {
+        var reviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 }, limit, page , )
+        reviews.forEach(review => {
             keyReviewPOint.push(...review.keyPoints.map(kp => kp.key))
         })
         if (keyReviewPOint.length > 0) {
 
             ratingByKey =  keyReviewPOint.map(key => {
-                var keyRating = this.helper.calculateRating(serviceReviews, [key])
-                return new KeyReview({ key: key, rating: keyRating })
+                var keyRating = this.helper.calculateRating(reviews, [key])
+                return new KeyReview({ key: key, rating: keyRating.rating , count : keyRating.count })
             })
         }
-        if (serviceReviews.length > 0) {
-            rating = this.helper.calculateRating(serviceReviews, keyPoints)
+        if (reviews.length > 0) {
+            rating = this.helper.calculateRating(reviews, keyPoints).rating
         }
 
-        var reviewDTOResult = new ReviewDTO({ rating: rating ?? 0.0, reviews: _.take(serviceReviews, 10), keyPoint : ratingByKey, count: serviceReviews.length })
+        var reviewDTOResult = new ReviewDTO({ rating: rating , reviews: _.take(reviews, limit), keyPoint : ratingByKey, count: reviews.length })
         return reviewDTOResult
     }
 

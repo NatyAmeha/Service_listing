@@ -4,7 +4,7 @@ import { NotificationController } from './notification.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Notification, notificationSchema } from 'src/model/notification.model';
 import { NotificationRepository } from 'src/repo/notification.repo';
-import { FirebaseNotificationSender } from 'src/service/notification_sender.service';
+import { FirebaseNotificationSender } from 'src/services/notification_sender.service';
 
 @Module({
   imports: [

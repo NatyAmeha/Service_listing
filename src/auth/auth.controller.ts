@@ -19,8 +19,11 @@ export class AuthController {
 
     @Post("/user/signin")
     async signupOrSigninUserWithPhone(@Body() userinfo : AuthDTO){
+      console.log("userinfo" ,  userinfo)
       var result = await this.authService.signupOrSigninWithPhone(userinfo , AccountType.USER.toString());
-      return result;
+      console.log("userinfo" ,  result) 
+
+      return result; 
     }
 
     @Get("/users")

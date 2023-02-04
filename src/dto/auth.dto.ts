@@ -3,3 +3,7 @@ export class AuthDTO{
     username : String
     accoutnType : String
 }
+
+export interface AuthResultDTO{
+    token : String
+}

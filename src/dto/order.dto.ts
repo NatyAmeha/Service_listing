@@ -1,15 +1,18 @@
 import { Business } from "src/model/business.model";
 import { Order, OrderItem } from "src/model/order.model";
 import { ServiceItem } from "src/model/service_item.model";
+import { ReviewDTO } from "./review.dto";
 
 export class OrderDTO{
     order : Order
     items : OrderItem[]
-    business? : Business
+    reviews? : ReviewDTO[]
+    business? : Business 
     couponCodes? : String[]
+    userReviewInfo? : ReviewDTO
 
     constructor(data : Partial<OrderDTO>){
-        Object.assign(this, data);
+        Object.assign(this, data); 
     }
 }
 

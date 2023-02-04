@@ -14,45 +14,46 @@ import { OrderService } from './order.service';
 
 @Controller('order')
 export class OrderController {
-    constructor(private orderService : OrderService , private userService : UserService ,  @InjectConnection() private dbConnection : Connection){}
+    constructor(private orderService: OrderService, private userService: UserService, @InjectConnection() private dbConnection: Connection) { }
 
 
     @Post("/create")
     @UseGuards(AuthGuard())
-    async placeOrder(@GetUser() user : User ,  @Body() orderInfo : Order){
+    async placeOrder(@GetUser() user: User, @Body() orderInfo: Order) {
         //create order
-        var result = await Helper.runInTransaction(this.dbConnection , async session =>{
-            var orderCreateResult = await this.orderService.makeOrder(orderInfo , session)
+        const { _id, ...rest } = orderInfo
+        var result = await Helper.runInTransaction(this.dbConnection, async session => {
+            var orderCreateResult = await this.orderService.makeOrder(rest , user, session)
             // update user info
-            var updateResult = await this.userService.addOrderToUser(user._id , orderCreateResult._id , session)
-            console.log("update result" , updateResult)
+            var updateResult = await this.userService.addOrderToUser(user._id, orderCreateResult._id, session)
+            console.log("update result", orderCreateResult, updateResult)
             return orderCreateResult
-        })
-        return result 
-    }  
+        },) 
+        return result
+    }
 
 
     // GET requst ----------------------------------------------------------------
 
     @Get("user")
     @UseGuards(AuthGuard())
-    async getUserOrders(@GetUser() user : User ){
-        var result = await this.orderService.getUserOrders(user._id)
+    async getUserOrders(@GetUser() user: User) {
+        var result = await this.orderService.getUserOrders(user)
         return result
     }
 
     @Get("/business")
     @Role(AccountType.SERVICE_PROVIDER)
-    @UseGuards(AuthGuard() , RoleGuard)
-    async getBusinessOrder(@Query("id") businessId : String) : Promise<OrderDTO[]>{
+    @UseGuards(AuthGuard(), RoleGuard)
+    async getBusinessOrder(@Query("id") businessId: String): Promise<OrderDTO[]> {
         var result = await this.orderService.getBusinessOrders([businessId])
         return result
     }
 
 
-    @Get("/:id") 
-    @UseGuards(AuthGuard())
-    async getOrderDetails(@GetUser() user : User ,  @Param("id") orderId : String){
+    @Get("/:id")
+    // @UseGuards(AuthGuard())
+    async getOrderDetails(@Param("id") orderId: String) {
         var result = await this.orderService.getOrderDetails(orderId)
         return result
     }
@@ -60,15 +61,15 @@ export class OrderController {
 
     // PUT request ---------------------------------------------------------------------------
     @Put("/updateStatus")
-    async updateOrderStatus(@Query("id") orderId : String , @Body() orderStatusInfo : OrderStatusDTO){
+    async updateOrderStatus(@Query("id") orderId: String, @Body() orderStatusInfo: OrderStatusDTO) {
         //manipulate data
-        var updateResult = await this.orderService.updateOrderStatus(orderId , orderStatusInfo)
+        var updateResult = await this.orderService.updateOrderStatus(orderId, orderStatusInfo)
         //send notification 
         return updateResult
     }
 
 
-    
 
-   
+
+
 }

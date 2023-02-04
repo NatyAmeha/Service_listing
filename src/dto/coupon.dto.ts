@@ -5,10 +5,10 @@ import { ServiceDTO } from "./service.dto";
 
 export class CouponDTO {
     couponInfo: Coupon
-    services?: Service[]
+    services?: ServiceDTO[]
     business?: Business
 
     constructor(data: Partial<CouponDTO>) {
         Object.assign(this, data);
     }
-} 
+}  

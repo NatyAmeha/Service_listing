@@ -39,7 +39,7 @@ export class BrowseService {
 
         //get service ids
         couponResult.forEach(coupon => {
-            var serviceIds = coupon.services.map(service => service._id)
+            var serviceIds = coupon.services.map(service => service.service._id)
             services.push(...serviceIds)
         })
         //query service items by service id
@@ -68,10 +68,10 @@ export class BrowseService {
         // Get business, service, coupon and review info
         var businessesDTOResult = userBusinessResult.map(business => {
             const { reviews, coupons, services, ...rest } = business
-            var totalRating = this.helper.calculateRating(reviews as Review[])
+            var ratingInfo = this.helper.calculateRating(reviews as Review[])
             return new BusinessDTO({
                 businessInfo: rest,
-                reviewInfo: new ReviewDTO({ rating: totalRating, reviews: reviews as Review[] }),
+                reviewInfo: new ReviewDTO({ rating: ratingInfo.rating, reviews: reviews as Review[] }),
                 services: services.map(service => new ServiceDTO({ service: service })),
                 coupons: coupons.map(coupon => new CouponDTO({ couponInfo: coupon }))
             })

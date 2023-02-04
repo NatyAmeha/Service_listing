@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { ClientSession, Document, InsertManyResult, Model } from "mongoose";
 import { IRepository } from "./repo.interface";
@@ -81,8 +81,9 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async add(data: any, upsert?: boolean): Promise<T> {
         try {
-            var result = await new this.model(data).save({ session: this.session })
-            return result;
+            var result = await new this.model(data).save({ session: this.session ,  })
+            console.log("id result" , result._id)
+            return result as T;
         } catch (ex) {
             console.log(ex)
             throw new InternalServerErrorException(null, ex.toString())
@@ -100,12 +101,18 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         }
     }
 
-    async upsert(query: Object, data: any): Promise<any> {
+    async upsert(query: Object, data: any): Promise<T> {
         try {
-            var findResult = await this.model.findOne(query).lean()
+            var findResult = await this.model.findOne(query).lean() as T
             if (findResult) {
-                var result = await this.model.findByIdAndUpdate(findResult._id, data)
-                return result;
+                console.log("data found upsert" , findResult)
+                const {_id , ...rest} = data
+                var result = await this.model.updateOne({_id : findResult._id}, {$set : rest as T})
+                if(result.acknowledged){
+                    return findResult 
+                }
+                else
+                 throw new BadRequestException(null, "Unable to update the data")
             }
             return await this.add(data)
         } catch (ex) {
@@ -115,7 +122,6 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async update(predicate: Object, data: any): Promise<Boolean> {
         try {
-            console.log("data is ", data)
             var result = await this.model.updateOne(predicate, { $set: data }, { new: true })
                 .session(this.session || null).lean()
             if (result.acknowledged) {
@@ -132,7 +138,6 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         try {
             var result = await this.model.updateOne(predicate, data)
                 .session(this.session || null).lean()
-            console.log("data is ", data, result)
             if (result.acknowledged) {
                 return true
             }

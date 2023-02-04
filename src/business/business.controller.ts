@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 import { result } from 'lodash';
 import { Connection } from 'mongoose';
 import { AuthNotRequired } from 'src/auth/auth.middleware';
@@ -36,11 +37,12 @@ export class BusinessController {
     }
 
 
-    // Get requests -----------------------------------------------------------------------------
+    // Get requests ------------------------------------ -----------------------------------------
 
     @Get("/reviews")
     async getBusinessReviewInfo(@Query("id") business: String, @Query("key") key?: String,
-        @Query("page", ParseIntPipe) page: number = 1, @Query("size", ParseIntPipe) size: number = 20) {
+        @Query("page", ParseIntPipe) page?: number, @Query("size", ParseIntPipe) size?: number) {
+        console.log("business review called")
         var reviewResult = await this.businesService.getBusinessReviewDetails(business, key?.split(","), page, size)
         return reviewResult;
     }
@@ -48,7 +50,7 @@ export class BusinessController {
     @Get("/:id")
     @UseGuards(AuthNotRequired)
     async getBusinessDetails(@Param("id") businessId: String, @GetUser() user?: User) {
-        console.log("business id" , businessId)
+        console.log("business id", businessId)
         var businessResult = await this.businesService.getBusinessDetails(businessId, user)
         return businessResult
 
@@ -73,24 +75,24 @@ export class BusinessController {
 
     @Put("/like")
     @UseGuards(AuthGuard())
-    async addBusinessToFavorite(@GetUser() user: User, @Query("id") businessId: String) {
+    async addBusinessToFavorite(@Res() response: Response, @GetUser() user: User, @Query("id") businessId: String) {
         var result = await Helper.runInTransaction(this.connection, async session => {
             var updateResult = await this.businesService.addToFavorite(businessId, user._id, session)
             return updateResult
 
         })
-        return result;
+        return response.status(200).json(result);
     }
 
     @Put("/unlike")
-    @UseGuards(AuthGuard("pass"))
-    async removeBusinessFromFavorite(@GetUser() user: User, @Query("id") businessId: String) {
+    @UseGuards(AuthGuard())
+    async removeBusinessFromFavorite(@Res() response: Response, @GetUser() user: User, @Query("id") businessId: String) {
         var result = await Helper.runInTransaction(this.connection, async session => {
             var updateResult = await this.businesService.removeFromFavorite(businessId, user._id, session)
             return updateResult
 
         })
-        return result
+        return response.status(200).json(result);
     }
 
 

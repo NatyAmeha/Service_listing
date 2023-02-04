@@ -26,6 +26,10 @@ export class Business {
     reviews? : String[] | Review[]
 
     static ModelName = "Business"
+
+    constructor(data : Partial<Business>){
+        Object.assign(this, data);
+    }
 }
 
 export var businessSchema: Schema = new Schema<Business>({

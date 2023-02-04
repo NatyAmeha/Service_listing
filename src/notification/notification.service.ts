@@ -2,12 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientSession } from 'mongoose';
 import { Notification } from 'src/model/notification.model';
 import { INotificationRepo, NotificationRepository } from 'src/repo/notification.repo';
-import { INotificationSender, FirebaseNotificationSender } from 'src/service/notification_sender.service';
+import { INotificationSender, FirebaseNotificationSender } from 'src/services/notification_sender.service';
 
 @Injectable()
 export class NotificationService {
 
-    constructor(
+    constructor( 
         @Inject(NotificationRepository.injectName) private notificationRepo: INotificationRepo,
         @Inject(FirebaseNotificationSender.INJECT_NAME) private notificationSender: INotificationSender
     ) { }
@@ -17,7 +17,7 @@ export class NotificationService {
         var createResult = await this.notificationRepo.add(notificationInfo)
         //send notification
         var sendResult = await this.notificationSender.sendNotification()
-        return sendResult
+        return sendResult  
     }
 
     async updateNotificationStatus(notificationId: String, seen: Boolean) {

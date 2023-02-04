@@ -33,7 +33,7 @@ export class JwtStrategyService extends PassportStrategy(Strategy) implements IJ
             }
             var token = await this.jwtService.signAsync(payload)
             
-            return token
+            return token 
         } catch (ex) {
             console.log(ex);
             return Promise.reject(ex);

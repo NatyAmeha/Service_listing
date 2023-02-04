@@ -1,6 +1,7 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 import { Connection } from 'mongoose';
 import { AuthNotRequired } from 'src/auth/auth.middleware';
 import { GetUser } from 'src/auth/get_user.decorator';
@@ -17,30 +18,32 @@ import { ServiceService } from './service.service';
 @Controller('service')
 export class ServiceController {
     constructor(private serviceService: ServiceService,
-        private reviewService : ReviewService,
+        private reviewService: ReviewService,
         @InjectConnection() private connection: Connection) {
 
     }
 
-    @Get("/reviews") 
-    async getServiceReviewInfo(@Query("id") serviceId: String, @Query("key") key?: String , 
-    @Query("page" , ParseIntPipe) page: number = 1 , @Query("size" , ParseIntPipe) size: number = 20) {
-        var reviewResult = await this.serviceService.getServiceReviews(serviceId, key?.split(",") , page , size)
+    @Get("/reviews")
+    async getServiceReviewInfo(@Query("id") serviceId: String, @Query("key") key?: String,
+        @Query("page", ParseIntPipe) page: number = 1, @Query("size", ParseIntPipe) size: number = 20) {
+
+        var reviewResult = await this.serviceService.getServiceReviews(serviceId, key?.split(","), page, size)
         return reviewResult;
     }
 
-    
+
 
     @Get("/product/:id")
-    async getServiceItemDetails(@Param("id") itemId: String) {
-        console.log("item id " , itemId)
-        var serviceItemResult = await this.serviceService.getServiceItemDetails(itemId)
+    @UseGuards(AuthNotRequired)
+    async getServiceItemDetails(@Param("id") itemId: String, @GetUser() user?: User) {
+
+        var serviceItemResult = await this.serviceService.getServiceItemDetails(itemId, user)
         return serviceItemResult
     }
 
     @Get("/:id")
     async getServiceDetails(@Param("id") businessId: String) {
-        console.log("item id service " , businessId)
+
         var serviceResult = await this.serviceService.getServiceDetails(businessId)
         return serviceResult
 
@@ -76,16 +79,19 @@ export class ServiceController {
         return r
     }
 
-    @Post("/review/add") 
+    @Post("/review/add")
     @UseGuards(AuthGuard())
-    async createReview(@Body() reviewInfo: Review) {
+    async createReview(@Res() response : Response ,  @Body() reviewInfo: Review , @GetUser() user : User) {
+        console.log("review info" , reviewInfo)
         var result = await Helper.runInTransaction(this.connection, async session => {
-            var reviewResult = await this.serviceService.createReview(reviewInfo , session)
-            return reviewResult;
+            var reviewResult = await this.serviceService.createReview(reviewInfo , user, session)
+            if (reviewResult)
+                return true
+            else return false
         })
-        return result
+        return response.status(200).json(result)
     }
-    
+
 
     // PUT request ----------------------------------------------------------------------------------
 
@@ -112,9 +118,9 @@ export class ServiceController {
     }
 
     @Put("/status/update")
-    @Role(AccountType.SERVICE_PROVIDER , AccountType.ADMIN)
+    @Role(AccountType.SERVICE_PROVIDER, AccountType.ADMIN)
     @UseGuards(AuthGuard(), RoleGuard)
-    async updateServiceActiveStatus(@Query("id") serviceId: String, @Query("status" , ParseBoolPipe) activeStatus : Boolean) {
+    async updateServiceActiveStatus(@Query("id") serviceId: String, @Query("status", ParseBoolPipe) activeStatus: Boolean) {
         var result = await this.serviceService.updateServiceStatus(serviceId, activeStatus)
         return result;
     }

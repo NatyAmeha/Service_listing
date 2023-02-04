@@ -1,9 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ClientSession } from "mongoose";
 import { CouponDTO } from "src/dto/coupon.dto";
+import { ServiceDTO } from "src/dto/service.dto";
 import { Business } from "src/model/business.model";
 import { Coupon, CouponCode } from "src/model/coupon.model";
 import { Service } from "src/model/service.model";
+import { ServiceItem } from "src/model/service_item.model";
 import { BusinessRepository, IBusinessRepo } from "src/repo/business.repo";
 import { CouponRepository, ICouponRepo } from "src/repo/coupon.repo";
 import { OrderRepository } from "src/repo/order.repo";
@@ -45,11 +47,20 @@ export class CouponService {
 
     }
 
-    async getCouponDetails(couponId : String): Promise<CouponDTO> {
-        var result = await this.couponRepo.get(couponId, ["service" , "business"])
-        const {service , business , ...rest} = result
-        var couponsDtoResult = new CouponDTO({couponInfo :  rest , services : service as Service[] , business : business as Business  })
-        return couponsDtoResult
+    async getCouponDetails(couponId: String): Promise<CouponDTO> {
+        var result = await this.couponRepo.get(couponId, [
+            "business",
+            {
+                path: "service", populate: { path: "serviceItems", model: "ServiceItem" },
+            },
+        ])
+        const { service, business, ...rest } = result
+        var serviceDTOResult = (service as Service[]).map(ser =>{
+            const {serviceItems , ...rest} = ser;
+            return new ServiceDTO({ service: rest , serviceItems : serviceItems as ServiceItem[] })
+        })
+        var couponsDtoResult = new CouponDTO({ couponInfo: rest, services: serviceDTOResult, business: business as Business })
+        return couponsDtoResult 
 
     }
 

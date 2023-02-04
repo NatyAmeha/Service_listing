@@ -4,16 +4,17 @@ import { ServiceItem } from "src/model/service_item.model";
 import { CouponDTO } from "./coupon.dto";
 import { ReviewDTO } from "./review.dto";
 import { ServiceDTO } from "./service.dto";
-import { ServiceItemDTO } from "./service_item.dto";
+import { ProductDTO } from "./service_item.dto";
 
 export class BusinessDTO{
     businessInfo? : Business
     services? : ServiceDTO[]
     reviewInfo? : ReviewDTO
     relatedBusinesses? : BusinessDTO[]
-    trendingProducts? : ServiceItemDTO[]
-    isInUserFavorite? : Boolean
+    trendingProducts? : ProductDTO[]
+
     coupons? : CouponDTO[]
+    favorite? : boolean
     constructor(data : Partial<BusinessDTO>){
         Object.assign(this, data);
     }

@@ -18,9 +18,10 @@ export class Service {
     viewCount?: number
     active?: Boolean
     creator?: String
+    callToAction?: String
     serviceItems?: String[] | ServiceItem[]
     addresses?: Address[]
-    contact?: Contact
+    contact?: Contact 
     coupons?: String[] | Coupon[]
     dateCreated?: Date
     reviews?: String[] | Review[]
@@ -35,6 +36,7 @@ export var serviceSchema = new Schema<Service>({
     name: { type: String, required: true },
     description: { type: String, required: true },
     images: { type: [String], required: true },
+    callToAction : {type : String},
     business: { type: Types.ObjectId, ref: "Business" },
     businessName : {type : String , required : true},
     tags: { type: [String], default: [] },

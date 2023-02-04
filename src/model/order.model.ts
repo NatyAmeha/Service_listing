@@ -4,6 +4,7 @@ import { OrderStatus, OrderType } from "src/utils/constants"
 import { Address } from "./address.model"
 import { Business } from "./business.model"
 import { Contact } from "./contact.model"
+import { Service } from "./service.model"
 import { ServiceItem } from "./service_item.model"
 import { User } from "./user.model"
 
@@ -23,20 +24,22 @@ export class Order {
     type?: String
     dateCreated?: Date
     address?: Address
-    contact?: Contact 
+    contact?: Contact
 
     static ModelName = "Order"
 
 }
 
 export class OrderItem {
-    _id : String
+    _id: String
     serviceItem?: String | ServiceItem
     productInfo: ServiceItem
     qty?: number
+    price?: number
     coupon?: String
-    business? : String
-    service? : String
+    business?: String
+    service?: String | Service
+    image?: String
     constructor(data: Partial<OrderItem>) {
         Object.assign(this, data);
     }
@@ -55,20 +58,22 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
     business: { type: Types.ObjectId, ref: "Business" },
     items: [{
         type: {
-            serviceItem: { type: Types.ObjectId , ref : "ServiceItem" },
+            serviceItem: { type: Types.ObjectId, ref: "ServiceItem" },
             qty: { type: Number },
+            price: { type: Number },
             coupon: { type: Types.ObjectId },
-            business : {type : Types.ObjectId , ref : "Business" , required : true },
-            service : {type : Types.ObjectId , ref : "Service", required : true}
+            business: { type: Types.ObjectId, ref: "Business", required: true },
+            service: { type: Types.ObjectId, ref: "Service", required: true },
+            image: { type: String, required: true }
         },
         default: []
     }],
     code: { type: String },
-    user: { type: Types.ObjectId, required: true , ref : "User" },
+    user: { type: Types.ObjectId, required: true, ref: "User" },
     status: { type: String, enum: OrderStatus, default: OrderStatus.PENDING },
     expireDate: { type: Date },
     moreInfo: { type: Map, of: String },
-    type: { type: String, enum: OrderType, required: true },    
+    type: { type: String, enum: OrderType, required: true },
     dateCreated: { type: Date, default: Date.now() },
     address: {
         type: {
@@ -78,7 +83,7 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
             },
 
             localAddress: { type: String }
-        }, required: true
+        },
     },
     contact: {
         type: {

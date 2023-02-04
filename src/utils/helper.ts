@@ -8,7 +8,7 @@ export interface IHelper {
 
     generateCouponCodes(amount: number);
     generateCode(length: number, generatedCodes: String[], dictionary?: String)
-    calculateRating(reviews: Review[], keyPoints?: String[]): number
+    calculateRating(reviews: Review[], keyPoints?: String[]): { rating: number, count: number }
     filterActiveCoupons(couponsInfo: Coupon[]): CouponDTO[]
 }
 
@@ -62,34 +62,48 @@ export class Helper implements IHelper {
         }
     }
 
-    calculateRating(reviews: Review[], keyPoints?: String[]): number {
+    calculateRating(reviews: Review[], keyPoints?: String[]): { rating: number, count: number } {
         var overallRating = 0.0;
         var reviewCount = 0;
         if (keyPoints) {
             reviews.forEach(review => {
                 var selectedKeyPoints = _.filter(review.keyPoints, kp => _.includes(keyPoints, kp.key))
                 if (selectedKeyPoints) {
-                    var keypointRating = _.divide(_.sumBy(_.map(selectedKeyPoints, kP => kP.rating), r => r), selectedKeyPoints?.length)
-                    overallRating += keypointRating
-                    reviewCount++
+                    var keypointRating = _.divide(_.sumBy(_.map(selectedKeyPoints, kP => kP.rating), r => r), selectedKeyPoints?.length) ?? 0
+                    if (!Number.isNaN(keypointRating)){
+                        overallRating += keypointRating ?? 0
+                        reviewCount++
+
+                    }
                 }
             })
         }
         else {
             reviews.forEach(review => {
-                var keypointRating = _.divide(_.sumBy(_.map(review.keyPoints, kP => kP.rating), r => r), review?.keyPoints?.length)
-                overallRating += keypointRating
-                reviewCount++
+                var keypointRating = _.divide(_.sumBy(_.map(review.keyPoints, kP => kP.rating), r => r), review?.keyPoints?.length) ?? 0
+                if (!Number.isNaN(keypointRating)){
+
+                    overallRating += keypointRating ?? 0
+                    reviewCount++
+                }
             })
         }
-        return _.divide(overallRating , reviewCount)
+        var finalRating = _.divide(overallRating, reviewCount)
+        
+        return {
+            rating: finalRating ?? 0,
+            count: reviewCount
+        };
 
     }
 
     filterActiveCoupons(coupons: Coupon[]): CouponDTO[] {
         var couponsDTOResult = coupons
             .filter(coupon => (coupon.totalUsed < coupon.maxAmount) || (coupon.endDate > new Date(Date.now())))
-            .map(cp => new CouponDTO({ couponInfo: cp }))
-            return couponsDTOResult
+            .map(cp => {
+                const { service, business, ...rest } = cp
+                return new CouponDTO({ couponInfo: rest })
+            })
+        return couponsDTOResult
     }
 }
