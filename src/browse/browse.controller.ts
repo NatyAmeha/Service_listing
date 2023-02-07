@@ -1,9 +1,11 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { UseGuards } from '@nestjs/common/decorators';
+import { Body, Post, Res, SetMetadata, UseGuards } from '@nestjs/common/decorators';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 import { GetUser } from 'src/auth/get_user.decorator';
 import { Role, RoleGuard } from 'src/auth/role.guard';
 import { SearchDTO } from 'src/dto/search.dto';
+import { Category } from 'src/model/category.model';
 import { User } from 'src/model/user.model';
 import { AccountType } from 'src/utils/constants';
 import { BrowseService } from './browse.service';
@@ -37,6 +39,15 @@ export class BrowseController {
     async getBrowseInfo(){
         var browseResult = await this.browseService.getBrowse()
         return browseResult
+    }
+
+
+    @Post("/category/create")
+    @Role(AccountType.ADMIN)
+    // @UseGuards(AuthGuard() , RoleGuard)
+    async createBrowseCategories(@Body() categoryList : Category[] , @Res() response : Response){
+        var createResult  = await this.browseService.createCategories(categoryList);
+        return createResult;
     }
 
 }

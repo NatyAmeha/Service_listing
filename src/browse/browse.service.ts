@@ -6,12 +6,14 @@ import { DashBoardDTO } from 'src/dto/dashboard.dto';
 import { ReviewDTO } from 'src/dto/review.dto';
 import { SearchDTO } from 'src/dto/search.dto';
 import { ServiceDTO } from 'src/dto/service.dto';
+import { Category } from 'src/model/category.model';
 import { Coupon } from 'src/model/coupon.model';
 import { Order } from 'src/model/order.model';
 import { Review } from 'src/model/review.model';
 import { User } from 'src/model/user.model';
 import { OrderService } from 'src/order/order.service';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
+import { CategoryRepository, ICategoryRepo } from 'src/repo/category.repo';
 import { CouponRepository, ICouponRepo } from 'src/repo/coupon.repo';
 import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
@@ -29,6 +31,7 @@ export class BrowseService {
         @Inject(ServiceSearchHandler.INJECT_NAME) private serviceSearchHandler: ISearchHandler,
         @Inject(BusinessSearchHandler.INJECT_NAME) private businessSearchHandler: ISearchHandler,
         @Inject(ProductSearchHandler.INJECT_NAME) private productSearchHandler: ISearchHandler,
+        @Inject(CategoryRepository.injectName) private categoryRepo: ICategoryRepo
     ) { }
 
     async getBrowse(): Promise<BrowseDTO> {
@@ -63,8 +66,8 @@ export class BrowseService {
         return searchResult
     }
 
-    async getServiceProviderDashboard(user : User): Promise<DashBoardDTO> {
-        var userBusinessResult = await this.businessRepo.find({ _id : {$in : user.userBusinesses} }, ["services", "coupons", "reviews"]);
+    async getServiceProviderDashboard(user: User): Promise<DashBoardDTO> {
+        var userBusinessResult = await this.businessRepo.find({ _id: { $in: user.userBusinesses } }, ["services", "coupons", "reviews"]);
         // Get business, service, coupon and review info
         var businessesDTOResult = userBusinessResult.map(business => {
             const { reviews, coupons, services, ...rest } = business
@@ -80,8 +83,18 @@ export class BrowseService {
         // get business order info
         var businessIds = userBusinessResult.map(business => business._id)
         var businessOrders = await this.orderService.getBusinessOrders(businessIds)
-        return new DashBoardDTO({ businesses: businessesDTOResult, orders : businessOrders})
-    } 
+        return new DashBoardDTO({ businesses: businessesDTOResult, orders: businessOrders })
+    }
 
-    
+    async createCategories(categories: Category[]) {
+        var result = await this.categoryRepo.addMany(categories)
+
+        if (result.acknowledged) {
+
+            return true;
+        }
+        else return false;
+    }
+
+
 }
