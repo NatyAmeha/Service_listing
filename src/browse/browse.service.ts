@@ -58,6 +58,11 @@ export class BrowseService {
         return result
     }
 
+    async getCategories(){
+        var result = await this.categoryRepo.find({});
+        return result;
+    }
+
     async search(query: String): Promise<SearchDTO> {
         this.productSearchHandler.setNextHandler(this.serviceSearchHandler)
         this.serviceSearchHandler.setNextHandler(this.businessSearchHandler)

@@ -35,19 +35,28 @@ export class BrowseController {
         return result
     }
 
+    @Get("/categories")
+    async getBrowseCategories(){
+        var categoryResult = await this.browseService.getCategories();
+        return categoryResult;
+    }
+
     @Get("/")
     async getBrowseInfo(){
         var browseResult = await this.browseService.getBrowse()
         return browseResult
     }
 
+    
+
 
     @Post("/category/create")
     @Role(AccountType.ADMIN)
-    // @UseGuards(AuthGuard() , RoleGuard)
+    @UseGuards(AuthGuard() , RoleGuard)
     async createBrowseCategories(@Body() categoryList : Category[] , @Res() response : Response){
         var createResult  = await this.browseService.createCategories(categoryList);
-        return createResult;
+        return response.status(201).json(createResult)
+        
     }
 
 }

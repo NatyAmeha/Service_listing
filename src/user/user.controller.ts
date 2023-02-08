@@ -2,8 +2,8 @@ import { Controller, Get, Param, ParseIntPipe, Put, Query, Res, UseGuards } from
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { GetUser } from 'src/auth/get_user.decorator';
+import { NotificationService } from 'src/messaging/notification.service';
 import { User } from 'src/model/user.model';
-import { NotificationService } from 'src/notification/notification.service';
 import { CSVQueryPipe } from 'src/utils/csv_query.pipe';
 import { UserService } from './user.service';
 
@@ -12,12 +12,12 @@ export class UserController {
 
     constructor(private notificationService: NotificationService, private userService: UserService) { }
 
-    @Get("/notifications")
-    @UseGuards(AuthGuard())
-    async getUserNotifications(@GetUser() user: User, @Query("page") page?: number, @Query("limit", ParseIntPipe) limit?: number) {
-        var result = await this.notificationService.getUserNotification(user._id, page, limit)
-        return result
-    }
+    // @Get("/notifications")
+    // @UseGuards(AuthGuard())
+    // async getUserNotifications(@GetUser() user: User, @Query("page") page?: number, @Query("limit", ParseIntPipe) limit?: number) {
+    //     var result = await this.notificationService.getUserNotification(user._id, page, limit)
+    //     return result
+    // }
 
     @Get("/account")
     @UseGuards(AuthGuard())
@@ -43,8 +43,8 @@ export class UserController {
     @Get("/notifications/:id/update") 
     @UseGuards(AuthGuard())
     async updateNotificationSeenStatus(@Param("id") notificatioNId?: String) {
-        var result = await this.notificationService.updateNotificationStatus(notificatioNId, true)
-        return result
+        // var result = await this.notificationService.updateNotificationStatus(notificatioNId, true)
+        // return result
     }
 
     // PUT request ------------------------------------------------------------

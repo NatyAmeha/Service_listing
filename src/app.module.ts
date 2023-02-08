@@ -13,7 +13,9 @@ import { Helper } from './utils/helper';
 import { BrowseModule } from './browse/browse.module';
 import { UserModule } from './user/user.module';
 import { ReviewModule } from './review/review.module';
-import { NotificationModule } from './notification/notification.module';
+
+import { MessageModule } from './messaging/message.module';
+
 @Global()
 @Module({
   imports: [
@@ -29,16 +31,15 @@ import { NotificationModule } from './notification/notification.module';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule, ReviewModule, NotificationModule,],
+    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule, ReviewModule, MessageModule,],
   controllers: [AppController],
   providers: [
     {
-      provide : Helper.INJECT_NAME,
-      useClass : Helper
+      provide: Helper.INJECT_NAME,
+      useClass: Helper
     },
     AppService
   ],
-  exports : [Helper.INJECT_NAME] 
+  exports: [Helper.INJECT_NAME]
 })
-export class AppModule { }    
-  
+export class AppModule { }
