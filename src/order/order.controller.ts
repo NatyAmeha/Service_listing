@@ -6,10 +6,11 @@ import { GetUser } from 'src/auth/get_user.decorator';
 import { Role, RoleGuard } from 'src/auth/role.guard';
 import { OrderDTO, OrderStatusDTO } from 'src/dto/order.dto';
 import { NotificationService } from 'src/messaging/notification.service';
+import { Notification } from 'src/model/notification.model';
 import { Order } from 'src/model/order.model';
 import { User } from 'src/model/user.model';
 import { UserService } from 'src/user/user.service';
-import { AccountType, OrderStatus } from 'src/utils/constants';
+import { AccountType, NotificationType, OrderStatus } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
 import { OrderService } from './order.service';
 
@@ -30,7 +31,26 @@ export class OrderController {
             var orderCreateResult = await this.orderService.makeOrder(rest, user, session)
             // update user info
             var updateResult = await this.userService.addOrderToUser(user._id, orderCreateResult._id, session)
-            console.log("update result", orderCreateResult, updateResult)
+            // create and send notification to service provider
+            var servicesInOrder = orderCreateResult.items.map(item => item.service as String)
+            if (servicesInOrder.length > 0) {
+                for await (const id of servicesInOrder) {
+                    var serviceOwner = await this.userService.getServiceProviderUserInfo(id)
+
+                    var notificationInfo = new Notification({
+                        title: "New order arrived",
+                        description: `New order has come for your service or product`,
+                        order: orderCreateResult._id,
+                        notificationType: NotificationType.ORDER.toString(),
+                        recepient: serviceOwner._id,
+                        service: id,
+                    })
+                    var orderimage = "https://www.shutterstock.com/image-vector/trolley-icon-vector-illustration-logo-260nw-1934827706.jpg"
+                    var notificationSendResult = await this.notificationService.sendNotification(notificationInfo, serviceOwner, orderimage)
+                }
+            }
+           
+
             return orderCreateResult
         },)
         return result

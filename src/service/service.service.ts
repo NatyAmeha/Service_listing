@@ -30,13 +30,14 @@ export class ServiceService {
 
     }
 
-    async createService(serviceInfo: Service, session?: ClientSession): Promise<Service> {
+    async createService(serviceInfo: Service,  session?: ClientSession): Promise<Service> {
         // add trnasaction session
         if (session) {
             this.serviceRepo.addSession(session)
             this.businessRepo.addSession(session)
         }
         //create service
+        
         var serviceResult = await this.serviceRepo.add(serviceInfo)
         // update business
         var updateBusinessResult = await this.businessRepo.updateWithFilter({ _id: serviceInfo.business }, { $push: { services: serviceResult._id, servicesName: serviceResult.name } })

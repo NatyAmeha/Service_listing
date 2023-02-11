@@ -16,6 +16,10 @@ export enum CouponType{
     FIXED_AMOUNT = "FIXED_AMOUNT", TIMELY="TIMELY"
 }
 
+export enum NotificationType{
+    ORDER = "ORDER", BUSINESS = "BUSINESS", SERVICE = "SERVICE", REWARD = "REWARD" , COUPON = "COUPON"
+}
+
 export class Constants {
     static USER_MODEL = "User"
     static ORDER_MODEL = "Order"

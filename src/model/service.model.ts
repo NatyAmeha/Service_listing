@@ -17,7 +17,7 @@ export class Service {
     tags?: String[]
     viewCount?: number
     active?: Boolean
-    creator?: String
+    creator?: String | User
     callToAction?: String
     serviceItems?: String[] | ServiceItem[]
     addresses?: Address[]

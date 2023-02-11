@@ -30,7 +30,7 @@ export class BrowseController {
     @Role(AccountType.SERVICE_PROVIDER) 
     @UseGuards(AuthGuard() , RoleGuard) 
     async getServiceProviderDashboard(@GetUser() user : User){
-        console.log("User info" , user)
+        
         var result = await this.browseService.getServiceProviderDashboard(user)
         return result
     }

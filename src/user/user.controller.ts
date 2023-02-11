@@ -32,7 +32,7 @@ export class UserController {
         var result = await this.userService.getUserFavoriteProducts(user._id)
         return result
     }
- 
+
     @Get("/businesses/favorite")
     @UseGuards(AuthGuard())
     async getUserFavoriteBusinesss(@GetUser() user: User) {
@@ -40,7 +40,7 @@ export class UserController {
         return result
     }
 
-    @Get("/notifications/:id/update") 
+    @Get("/notifications/:id/update")
     @UseGuards(AuthGuard())
     async updateNotificationSeenStatus(@Param("id") notificatioNId?: String) {
         // var result = await this.notificationService.updateNotificationStatus(notificatioNId, true)
@@ -51,19 +51,27 @@ export class UserController {
 
     @Put("/products/add")
     @UseGuards(AuthGuard())
-    async addProductsToFavorite( @Res() response : Response ,  @Query("ids", CSVQueryPipe) productIds: String[], @GetUser() user: User) {
+    async addProductsToFavorite(@Res() response: Response, @Query("ids", CSVQueryPipe) productIds: String[], @GetUser() user: User) {
         var result = await this.userService.addProductToFavorite(productIds, user._id)
-        console.log("product ids" , productIds , result)
+        console.log("product ids", productIds, result)
         return response.status(200).json(result)
     }
 
     @Put("/products/remove")
     @UseGuards(AuthGuard())
-    async removeProductsToFavorite(@Res() response : Response ,  @Query("ids", CSVQueryPipe) productIds: String[], @GetUser() user: User) {
+    async removeProductsToFavorite(@Res() response: Response, @Query("ids", CSVQueryPipe) productIds: String[], @GetUser() user: User) {
         var result = await this.userService.removeProductFromFavorite(productIds, user._id)
         return response.status(200).json(result)
     }
 
-     
+
+    @Put("/fcm/update")
+    @UseGuards(AuthGuard())
+    async addFcmToken(@Query("token") fcmToken: String, @Res() response: Response, @GetUser() userInfo: User) {
+        var userFcmUpdateResult = await this.userService.updateFcmToken(fcmToken, userInfo._id)
+        return response.status(200).json(userFcmUpdateResult)
+
+    }
+
+
 }
-  

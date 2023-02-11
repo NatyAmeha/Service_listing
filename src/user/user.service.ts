@@ -7,11 +7,14 @@ import { UserDTO } from 'src/dto/user.dto';
 import { Business } from 'src/model/business.model';
 import { ServiceItem } from 'src/model/service_item.model';
 import { User } from 'src/model/user.model';
+import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IUserRepo, UserRepository } from 'src/repo/user.repo';
 
 @Injectable()
 export class UserService {
-    constructor(@Inject(UserRepository.injectName) private userRepo: IUserRepo) { }
+    constructor(@Inject(UserRepository.injectName) private userRepo: IUserRepo,
+    
+    @Inject(ServiceRepository.injectName) private serviceRepo : IServiceRepo) { }
 
     async addOrderToUser(userId: String, orderId: String, session?: ClientSession): Promise<Boolean> {
         if (session) {
@@ -29,6 +32,21 @@ export class UserService {
             updateResult = await this.userRepo.updateWithFilter({ _id: userId }, { $addToSet: { favoriteProducts: id } })
         }
         return updateResult
+    }
+
+    async getServiceProviderUserInfo(serviceId : String){
+        var serviceInfo = await this.serviceRepo.get(serviceId , ["creator"])
+        if(serviceInfo){
+           var userInfo = serviceInfo.creator as User
+           return userInfo
+        }
+        else 
+        return null;   
+    }
+
+    async updateFcmToken(fcmToken : String , userId : String) : Promise<boolean>{
+        var result = await this.userRepo.updateWithFilter({_id : userId} , { $push: { fcmToken: { $each: [fcmToken], $slice: -4 } } })
+        return result;
     }
 
     async removeProductFromFavorite(productIds: String[], userId: String): Promise<Boolean> {

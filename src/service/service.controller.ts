@@ -60,9 +60,11 @@ export class ServiceController {
     @Post("/create")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async create(@Body() serviceInfo: Service) {
+    async createService(@Body() serviceInfo: Service , @GetUser() serviceCreator : User) {
         var serviceResult = await Helper.runInTransaction(this.connection, async session => {
-            var result = await this.serviceService.createService(serviceInfo, session)
+            serviceInfo.creator = serviceCreator._id;
+            var result = await this.serviceService.createService(serviceInfo 
+                , session)
             return result;
         })
         return serviceResult
