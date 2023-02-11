@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { BrowseDTO } from 'src/dto/browse.dto';
 import { BusinessDTO } from 'src/dto/business.dto';
+import { CategoryDTO } from 'src/dto/category.dto';
 import { CouponDTO } from 'src/dto/coupon.dto';
 import { DashBoardDTO } from 'src/dto/dashboard.dto';
 import { ReviewDTO } from 'src/dto/review.dto';
@@ -17,6 +18,7 @@ import { CategoryRepository, ICategoryRepo } from 'src/repo/category.repo';
 import { CouponRepository, ICouponRepo } from 'src/repo/coupon.repo';
 import { IServiceRepo, ServiceRepository } from 'src/repo/service.repo';
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
+import { ReviewService } from 'src/review/review.service';
 import { BusinessSearchHandler, ISearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.handler';
 import { Helper, IHelper } from 'src/utils/helper';
 
@@ -25,8 +27,10 @@ export class BrowseService {
     constructor(
         @Inject(CouponRepository.injectName) private couponRepo: ICouponRepo,
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
+        @Inject(ServiceRepository.injectName) private serviceRepo : IServiceRepo,
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
         @Inject(Helper.INJECT_NAME) private helper: IHelper,
+        private reviewService: ReviewService,
         private orderService: OrderService,
         @Inject(ServiceSearchHandler.INJECT_NAME) private serviceSearchHandler: ISearchHandler,
         @Inject(BusinessSearchHandler.INJECT_NAME) private businessSearchHandler: ISearchHandler,
@@ -37,28 +41,37 @@ export class BrowseService {
     async getBrowse(): Promise<BrowseDTO> {
         var currentDate = new Date(Date.now())
         var services: String[] = []
+        //query active coupons
         var couponResult = await this.couponRepo.getActiveCoupons(currentDate, 1, 10)
-        var result = new BrowseDTO({ coupons: couponResult })
 
-        //get service ids
+
+        // query featured businesses
+        var businessREsult = await this.businessRepo.find({ featured: true })
+        var featuredBusinessDTO = businessREsult.map(b => new BusinessDTO({ businessInfo: b }))
+        // query categories
+        var categoryResult = await this.categoryRepo.find({});
+        // query top businesses by rating 
+        var topBusinessesByRating = await this.businessRepo.getTopBusinessesByReview();
+ 
+        // query services 
+        var servicesResult = await this.serviceRepo.findandSort({} , {viewCount : -1} , 10)
+        var trendingServiceResult = servicesResult.map(service => new ServiceDTO({service : service}));
+
+        var browseResult = new BrowseDTO({ coupons: couponResult, featuredBusinesses: featuredBusinessDTO, 
+            categories: categoryResult, topBusinesses: topBusinessesByRating , featuredServices : trendingServiceResult })
+        //Query products from coupons and services
         couponResult.forEach(coupon => {
             var serviceIds = coupon.services.map(service => service.service._id)
             services.push(...serviceIds)
         })
-        //query service items by service id
         if (services.length > 0) {
             var serviceItemResult = await this.serviceItemRepo.getServiceItems(services, { "featured": -1 })
-            result.products = serviceItemResult
-
+            browseResult.products = serviceItemResult
         }
-        // query featured businesses
-        var businessREsult = await this.businessRepo.find({ featured: true })
-        var featuredBusinessDTO = businessREsult.map(b => new BusinessDTO({ businessInfo: b }))
-        result.featuredBusinesses = featuredBusinessDTO
-        return result
+        return browseResult
     }
 
-    async getCategories(){
+    async getCategories() {
         var result = await this.categoryRepo.find({});
         return result;
     }
@@ -95,11 +108,32 @@ export class BrowseService {
         var result = await this.categoryRepo.addMany(categories)
 
         if (result.acknowledged) {
-
             return true;
         }
         else return false;
     }
+
+    async browseByCategory(categoryName: String): Promise<CategoryDTO> {
+        var availableCoupons: Coupon[] = [];
+        var businessesInfo: BusinessDTO[] = []
+
+        var businessesbyCategory = await this.businessRepo.find({ category: categoryName.toLocaleUpperCase() }, ["coupons"])
+
+        businessesInfo = await Promise.all(businessesbyCategory.map(async business => {
+            const { coupons, ...rest } = business
+
+            availableCoupons.push(...coupons as Coupon[])
+            var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: rest._id })
+
+            return new BusinessDTO({ businessInfo: rest, reviewInfo: businessReview })
+        }))
+        var businessActiveCoupons = this.helper.filterActiveCoupons(availableCoupons)
+        
+
+        var browseResult = new CategoryDTO({ businesses: businessesInfo, coupons: businessActiveCoupons })
+        console.log("browse result" , browseResult)
+        return browseResult;
+    } 
 
 
 }

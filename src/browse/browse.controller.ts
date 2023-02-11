@@ -40,6 +40,13 @@ export class BrowseController {
         var categoryResult = await this.browseService.getCategories();
         return categoryResult;
     }
+    @Get("/category")
+    async browseByCategoryName(@Query("name") categoryName : String){
+        console.log("category name" , categoryName)
+        var browseResult = await this.browseService.browseByCategory(categoryName)
+        return browseResult
+    }
+
 
     @Get("/")
     async getBrowseInfo(){
@@ -47,6 +54,7 @@ export class BrowseController {
         return browseResult
     }
 
+    
     
 
 

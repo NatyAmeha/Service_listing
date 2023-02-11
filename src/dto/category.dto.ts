@@ -7,7 +7,7 @@ export class CategoryDTO {
     businesses?: BusinessDTO[]
     coupons?: CouponDTO[]
 
-    constructor(data: Partial<BusinessDTO>) {
+    constructor(data: Partial<CategoryDTO>) {
         Object.assign(this, data);
     }
 }

@@ -6,6 +6,7 @@ import { BusinessModule } from 'src/business/business.module';
 import { Category, categorySchema } from 'src/model/category.model';
 import { OrderModule } from 'src/order/order.module';
 import { CategoryRepository } from 'src/repo/category.repo';
+import { ReviewModule } from 'src/review/review.module';
 import { ServiceModule } from 'src/service/service.module';
 import { BusinessSearchHandler, ProductSearchHandler, ServiceSearchHandler } from 'src/services/search.handler';
 import { BrowseController } from './browse.controller';
@@ -18,7 +19,7 @@ import { BrowseService } from './browse.service';
         { name: Category.ModelName, schema: categorySchema },
       ],
     ),
-    BusinessModule, ServiceModule, OrderModule, AuthModule],
+    BusinessModule, ServiceModule, OrderModule, AuthModule,  ReviewModule],
   controllers: [BrowseController],
   providers: [
     {

@@ -5,6 +5,7 @@ import { NotificationRepository } from 'src/repo/notification.repo';
 import { FirebaseNotificationSender } from './firebase_notification';
 import { MessageController } from './message.controller';
 import { MessageService } from './message.service';
+import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
 
 @Module({
@@ -15,7 +16,7 @@ import { NotificationService } from './notification.service';
     },],),
   ],
   controllers: [
-
+    NotificationController,
     MessageController,
   ],
   providers: [
@@ -33,6 +34,7 @@ import { NotificationService } from './notification.service';
     MessageService, NotificationService,
     FirebaseNotificationSender.INJECT_NAME,
     NotificationRepository.injectName,
+    NotificationService
   ]
 })
 export class MessageModule { }

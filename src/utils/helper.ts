@@ -70,7 +70,7 @@ export class Helper implements IHelper {
                 var selectedKeyPoints = _.filter(review.keyPoints, kp => _.includes(keyPoints, kp.key))
                 if (selectedKeyPoints) {
                     var keypointRating = _.divide(_.sumBy(_.map(selectedKeyPoints, kP => kP.rating), r => r), selectedKeyPoints?.length) ?? 0
-                    if (!Number.isNaN(keypointRating)){
+                    if (!Number.isNaN(keypointRating)) {
                         overallRating += keypointRating ?? 0
                         reviewCount++
 
@@ -81,7 +81,7 @@ export class Helper implements IHelper {
         else {
             reviews.forEach(review => {
                 var keypointRating = _.divide(_.sumBy(_.map(review.keyPoints, kP => kP.rating), r => r), review?.keyPoints?.length) ?? 0
-                if (!Number.isNaN(keypointRating)){
+                if (!Number.isNaN(keypointRating)) {
 
                     overallRating += keypointRating ?? 0
                     reviewCount++
@@ -89,7 +89,7 @@ export class Helper implements IHelper {
             })
         }
         var finalRating = _.divide(overallRating, reviewCount)
-        
+
         return {
             rating: finalRating ?? 0,
             count: reviewCount
@@ -99,7 +99,7 @@ export class Helper implements IHelper {
 
     filterActiveCoupons(coupons: Coupon[]): CouponDTO[] {
         var couponsDTOResult = coupons
-            .filter(coupon => (coupon.totalUsed < coupon.maxAmount) || (coupon.endDate > new Date(Date.now())))
+            .filter(coupon => ((coupon.totalUsed < coupon.maxAmount) && (coupon.endDate > new Date())))
             .map(cp => {
                 const { service, business, ...rest } = cp
                 return new CouponDTO({ couponInfo: rest })

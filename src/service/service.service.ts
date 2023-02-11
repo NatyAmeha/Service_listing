@@ -39,10 +39,10 @@ export class ServiceService {
         //create service
         var serviceResult = await this.serviceRepo.add(serviceInfo)
         // update business
-        var updateBusinessResult = await this.businessRepo.updateWithFilter({ _id: serviceInfo.business }, { $push: { services: serviceResult._id } })
+        var updateBusinessResult = await this.businessRepo.updateWithFilter({ _id: serviceInfo.business }, { $push: { services: serviceResult._id, servicesName: serviceResult.name } })
         return serviceResult
-    }
-
+    } 
+ 
     async createServiceItem(serviceItemInfo: ServiceItem, session?: ClientSession): Promise<ServiceItem> {
         if (session) {
             this.serviceRepo.addSession(session)
@@ -64,21 +64,21 @@ export class ServiceService {
         return updateResult
     }
 
-    async createReview(reviewInfo: Review, user : User ,  session: ClientSession): Promise<Review> {
+    async createReview(reviewInfo: Review, user: User, session: ClientSession): Promise<Review> {
         this.reviewRepo.addSession(session)
         this.serviceRepo.addSession(session)
-        this.businessRepo.addSession(session) 
-        
+        this.businessRepo.addSession(session)
+
         reviewInfo.user = user._id
         reviewInfo.username = user.username
         reviewInfo.profileImage = user.profileImage
-        const {_id , ...rest} = reviewInfo
-        var reviewCreateResult = await this.reviewRepo.upsert({user : user._id, service : reviewInfo.service } , rest)
-       
+        const { _id, ...rest } = reviewInfo
+        var reviewCreateResult = await this.reviewRepo.upsert({ user: user._id, service: reviewInfo.service }, rest)
+
         var serviceUpdateResult = await this.serviceRepo.updateWithFilter({ _id: reviewInfo.service }, { $addToSet: { reviews: reviewCreateResult._id } })
         var businessUpdateREsult = await this.businessRepo.updateWithFilter({ _id: reviewInfo.business }, { $addToSet: { reviews: reviewCreateResult._id } })
         return reviewCreateResult
-    }  
+    }
 
     async getServiceReviews(serviceId: String, keyPoints?: String[], page?: number, size?: number): Promise<ReviewDTO> {
         var serviceReviews = await this.reviewService.getHighlevelReviewInfo({ service: serviceId }, keyPoints, page, size)
@@ -87,6 +87,8 @@ export class ServiceService {
         // var reviewDTOResult = new ReviewDTO({ rating: rating, reviews: _.take(serviceReviews, 10) })
         return serviceReviews
     }
+
+    
 
 
     async editServiceItem(id: String, serviceItemInfo: ServiceItem, session?: ClientSession): Promise<Boolean> {
@@ -112,7 +114,7 @@ export class ServiceService {
         var businessInfo = business as Business
         var result = new ServiceDTO({
             service: rest as Service, relatedServices: relatedService,
-            business : new BusinessDTO({businessInfo : new Business({_id : businessInfo._id , name : businessInfo.name})}),
+            business: new BusinessDTO({ businessInfo: new Business({ _id: businessInfo._id, name: businessInfo.name }) }),
             serviceItems: serviceItems as ServiceItem[], coupons: couponsDTO
 
         })

@@ -16,6 +16,7 @@ export class ReviewService {
     }
 
     async createReview(reviewInfo: Review, session?: ClientSession): Promise<Review> {
+        
         if (session) {
             this.reviewRepo.addSession(session)
         }
@@ -32,7 +33,7 @@ export class ReviewService {
         var rating = 0.0
         var keyReviewPOint: String[] = []
         var ratingByKey: KeyReview[] = []
-        var reviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 }, limit, page , )
+        var reviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 } )
         reviews.forEach(review => {
             keyReviewPOint.push(...review.keyPoints.map(kp => kp.key))
         })

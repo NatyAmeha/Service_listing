@@ -60,7 +60,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
 
     async findandSort(predicate: Object, sortPredicate: Object, limit: number = 100, page: number = 1, populateString?: any): Promise<T[]> {
         try {
-            var result = await this.model.find(predicate).sort(sortPredicate as any)
+            var result = await this.model.find(predicate).populate(populateString).sort(sortPredicate as any)
                 .limit(limit).session(this.session || null).lean() as T[]
             return result
         } catch (ex) {
@@ -134,7 +134,7 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         }
     }
 
-    async updateWithFilter(predicate: Object, data: Object, strict: Boolean = false): Promise<Boolean> {
+    async updateWithFilter(predicate: Object, data: Object, strict: Boolean = false): Promise<boolean> {
         try {
             var result = await this.model.updateOne(predicate, data)
                 .session(this.session || null).lean()

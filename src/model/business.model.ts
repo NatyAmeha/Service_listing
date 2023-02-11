@@ -10,7 +10,7 @@ export class Business {
     _id? : String
     name?: String
     description?: String
-    category?: String
+    category?: String[]
     likeCount?: number
     verified?: Boolean
     featured? : Boolean
@@ -35,7 +35,7 @@ export class Business {
 export var businessSchema: Schema = new Schema<Business>({
     name: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: String, required: true },
+    category: { type: [String], required: true , uppercase : true },
     likeCount: { type: Number, default: 0 },
     verified: { type: Boolean, default: false },
     featured : {type : Boolean , default : false},

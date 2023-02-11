@@ -14,4 +14,6 @@ export class CategoryRepository extends MongodbRepo<CategoryDocument> implements
     constructor(@InjectModel(Category.ModelName) protected categoryModel: Model<CategoryDocument>) {
         super(categoryModel)
     }
+
+    
 } 

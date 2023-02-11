@@ -17,6 +17,9 @@ import { Business } from 'src/model/business.model';
 import { OrderStatus } from 'src/utils/constants';
 import { UserDTO } from 'src/dto/user.dto';
 import { User } from 'src/model/user.model';
+import { Service } from 'src/model/service.model';
+import { Review } from 'src/model/review.model';
+import { IReviewRepo, ReviewRepository } from 'src/repo/review.repo';
 
 @Injectable()
 export class OrderService {
@@ -26,11 +29,12 @@ export class OrderService {
         @Inject(ServiceRepository.injectName) private serviceRepo: IServiceRepo,
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
-        @Inject(Helper.INJECT_NAME) private helper: IHelper
+        @Inject(Helper.INJECT_NAME) private helper: IHelper,
+        @Inject(ReviewRepository.injectName) private reviewRepo: IReviewRepo,
 
     ) { }
 
-    async makeOrder(orderInfo: Order , user : User, session?: ClientSession): Promise<Order> {
+    async makeOrder(orderInfo: Order, user: User, session?: ClientSession): Promise<Order> {
         if (session) {
             this.couponRepo.addSession(session)
             this.orderRepo.addSession(session)
@@ -46,13 +50,12 @@ export class OrderService {
             var date = new Date(Date.now())
             // generate order code
             var codeResult = await this.helper.generateCode(6, [], "0123456789")
-            
-            console.log("total price before discount" , orderInfo.price)
+
+            console.log("total price before discount", orderInfo.price)
             orderInfo.code = codeResult
 
             //check coupon codes
             var validCoupons = await this.couponRepo.getActiveCoupons(date, 1, couponCodeIds.length, couponCodeIds)
-            console.log("valid coupon codes", validCoupons)
             if (validCoupons.length > 0) {
                 for await (const item of orderInfo.items) {
                     var couponAppliedToProduct = validCoupons.find(c => c.couponInfo._id == item.coupon)?.couponInfo
@@ -63,9 +66,9 @@ export class OrderService {
 
                         if (orderInfo.price && productInfo.fixedPrice) {
                             var discountedAmount = ((item.qty * item.price) * couponAppliedToProduct.discountAmount) / 100
-                            console.log("price before discount" , orderInfo.price)
+                            console.log("price before discount", orderInfo.price)
                             orderInfo.price = orderInfo.price - discountedAmount
-                            console.log("discount amount 2", discountedAmount , orderInfo.price , couponAppliedToProduct.discountAmount)
+                            console.log("discount amount 2", discountedAmount, orderInfo.price, couponAppliedToProduct.discountAmount)
                         }
                         if (orderInfo.priceRange && productInfo.minPrice && productInfo.maxPrice) {
                             orderInfo.priceRange.min = orderInfo.priceRange.min - (((item.qty * productInfo.minPrice) * couponAppliedToProduct.discountAmount)) / 100
@@ -79,47 +82,65 @@ export class OrderService {
                             var couponUpdateResult = await this.couponRepo.update({ _id: couponAppliedToProduct._id }, couponAppliedToProduct)
                             console.log("coupon update result", couponUpdateResult)
                         }
-                    } 
-                }   
+                    }
+                }
 
             }
             console.log("order price", orderInfo.price)
             //save order info
             orderInfo.user = user._id;
             var result = await this.orderRepo.add(orderInfo)
-            return result; 
-        }   
-        else { 
+            return result;
+        }
+        else {
             // save order info
             var result = await this.orderRepo.add(orderInfo)
             return result;
         }
     }
 
-    async updateOrderStatus(orderId: String, orderStatusInfo: OrderStatusDTO): Promise<Boolean> {
-        var updateInfo: { status: String, price?: number } = { status: orderStatusInfo.status }
-        if (orderStatusInfo.finalPrice) {
-            updateInfo.price = orderStatusInfo.finalPrice
+    async updateOrderStatus(orderCode: String, orderStatusInfo: OrderStatusDTO): Promise<Boolean> {
+        // find order and update status by order code
+        var orderResult = await this.orderRepo.findOne({ code: orderCode })
+        if (orderResult) {
+            var orderUpdateResult = await this.orderRepo.updateWithFilter({ user: orderResult._id }, orderStatusInfo)
         }
-        var orderUpdateResult = await this.orderRepo.updateWithFilter({ user: orderId }, updateInfo)
+
         return orderUpdateResult
     }
 
-    async getOrderDetails(orderId: String): Promise<OrderDTO> {
-        var result = await this.orderRepo.get(orderId, ["business"  , "items.service", "items.serviceItem"])
-        const { business, items,    ...rest } = result
-        
-        var orderSaveResult = new OrderDTO({ order: rest, items: items, business: business as Business as Business })
-        return orderSaveResult   
+
+    async getOrderDetails(orderId: String, user: User): Promise<OrderDTO> {
+        var reviews: Review[] = []
+        var result = await this.orderRepo.get(orderId, ["business", "items.service", "items.serviceItem"])
+        const { business, items, ...rest } = result
+
+
+        //get user service reviews inside the order
+
+        var servicesIDInOrder = result.items.map(item => (item.service as Service)._id) as String[]
+        for await (const id of _.uniq(servicesIDInOrder)) {
+            var review = await this.reviewRepo.findOne({ user: user._id, service: id })
+            
+            if (review) {
+                reviews.push(review)
+            }
+        }
+
+        var orderSaveResult = new OrderDTO({
+            order: rest, items: items,
+            business: business as Business, userServiceReviews: reviews
+        })
+        return orderSaveResult
     }
 
     async getUserOrders(user: User): Promise<UserDTO> {
-        
-        var result = await this.orderRepo.find({ _id : {$in : user.orders} })
+
+        var result = await this.orderRepo.find({ _id: { $in: user.orders } })
         var orderDTOList = await result.map(order => new OrderDTO({ order: order }))
-        var userOrdeResult = new UserDTO({orders : orderDTOList})
+        var userOrdeResult = new UserDTO({ orders: orderDTOList })
         console.log(userOrdeResult)
-        return userOrdeResult 
+        return userOrdeResult
     }
 
     async getBusinessOrders(businessIds: String[]): Promise<OrderDTO[]> {
@@ -129,7 +150,7 @@ export class OrderService {
             var businessOrderResult = await orderREsults.map(order => new OrderDTO({ order: order }))
             orders.push(...businessOrderResult)
         }
-        return orders 
+        return orders
     }
 
     async createCoupon(couponInfo: Coupon, session?: ClientSession): Promise<Coupon> {

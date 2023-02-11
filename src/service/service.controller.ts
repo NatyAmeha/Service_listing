@@ -81,10 +81,11 @@ export class ServiceController {
 
     @Post("/review/add")
     @UseGuards(AuthGuard())
-    async createReview(@Res() response : Response ,  @Body() reviewInfo: Review , @GetUser() user : User) {
-        console.log("review info" , reviewInfo)
+    async createReview(@Res() response: Response, @Body() reviewInfo: Review, @GetUser() user: User) {
+        const { dateCreated, _id, ...rest } = reviewInfo
+        console.log("review info", reviewInfo)
         var result = await Helper.runInTransaction(this.connection, async session => {
-            var reviewResult = await this.serviceService.createReview(reviewInfo , user, session)
+            var reviewResult = await this.serviceService.createReview(rest, user, session)
             if (reviewResult)
                 return true
             else return false
@@ -127,11 +128,9 @@ export class ServiceController {
 
     @Put("review/update")
     @UseGuards(AuthGuard())
-    async updateReview(@Query("id") reviewId: String, @Body() reviewInfo: Review) {
+    async updateReview(@Query("id") reviewId: String, @Body() reviewInfo: Review, @Res() response: Response) {
         var reviewResult = await this.reviewService.updateReview(reviewId, reviewInfo)
-        return reviewResult;
+        return response.status(200).json(reviewResult)
     }
-
-
 
 }
