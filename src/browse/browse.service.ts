@@ -11,6 +11,7 @@ import { Category } from 'src/model/category.model';
 import { Coupon } from 'src/model/coupon.model';
 import { Order } from 'src/model/order.model';
 import { Review } from 'src/model/review.model';
+import { ServiceItem } from 'src/model/service_item.model';
 import { User } from 'src/model/user.model';
 import { OrderService } from 'src/order/order.service';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
@@ -27,7 +28,7 @@ export class BrowseService {
     constructor(
         @Inject(CouponRepository.injectName) private couponRepo: ICouponRepo,
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
-        @Inject(ServiceRepository.injectName) private serviceRepo : IServiceRepo,
+        @Inject(ServiceRepository.injectName) private serviceRepo: IServiceRepo,
         @Inject(BusinessRepository.injectName) private businessRepo: IBusinessRepo,
         @Inject(Helper.INJECT_NAME) private helper: IHelper,
         private reviewService: ReviewService,
@@ -47,18 +48,32 @@ export class BrowseService {
 
         // query featured businesses
         var businessREsult = await this.businessRepo.find({ featured: true })
-        var featuredBusinessDTO = businessREsult.map(b => new BusinessDTO({ businessInfo: b }))
+        var featuredBusinessDTO = await Promise.all(businessREsult.map(async b => {
+            var reviewInfo = await this.reviewService.getHighlevelReviewInfo({ business: b._id })
+            return new BusinessDTO({ businessInfo: b, reviewInfo: reviewInfo })
+        },),)
         // query categories
         var categoryResult = await this.categoryRepo.find({});
         // query top businesses by rating 
         var topBusinessesByRating = await this.businessRepo.getTopBusinessesByReview();
- 
-        // query services 
-        var servicesResult = await this.serviceRepo.findandSort({} , {viewCount : -1} , 10)
-        var trendingServiceResult = servicesResult.map(service => new ServiceDTO({service : service}));
 
-        var browseResult = new BrowseDTO({ coupons: couponResult, featuredBusinesses: featuredBusinessDTO, 
-            categories: categoryResult, topBusinesses: topBusinessesByRating , featuredServices : trendingServiceResult })
+        // query services 
+        var servicesResult = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ["coupons", "serviceItems"])
+        var trendingServiceResult = await Promise.all(servicesResult.map(async service => {
+            var reviewInfo = await this.reviewService.getHighlevelReviewInfo({ service: service._id })
+            const { coupons, serviceItems, ...rest } = service
+            var activeCoupons = this.helper.filterActiveCoupons(coupons as Coupon[])
+            return new ServiceDTO({
+                service: rest, coupons: activeCoupons,
+                reviewInfo: reviewInfo,
+                serviceItems: serviceItems as ServiceItem[]
+            })
+        }))
+
+        var browseResult = new BrowseDTO({
+            coupons: couponResult, featuredBusinesses: featuredBusinessDTO,
+            categories: categoryResult, topBusinesses: topBusinessesByRating, featuredServices: trendingServiceResult
+        })
         //Query products from coupons and services
         couponResult.forEach(coupon => {
             var serviceIds = coupon.services.map(service => service.service._id)
@@ -128,12 +143,12 @@ export class BrowseService {
             return new BusinessDTO({ businessInfo: rest, reviewInfo: businessReview })
         }))
         var businessActiveCoupons = this.helper.filterActiveCoupons(availableCoupons)
-        
+
 
         var browseResult = new CategoryDTO({ businesses: businessesInfo, coupons: businessActiveCoupons })
-        console.log("browse result" , browseResult)
+        console.log("browse result", browseResult)
         return browseResult;
-    } 
+    }
 
 
 }

@@ -70,6 +70,7 @@ export class BusinessService {
         var servicesDTOs = services.map(service => new ServiceDTO({ service: service  }))
         var relatedBusinesses = await this.businessRepo.getRelatedBusiness(businessInfo)
         
+        
         var businessDTOResult = new BusinessDTO({ businessInfo: rest, 
             relatedBusinesses: relatedBusinesses, services: servicesDTOs , coupons : couponsDTO })
 
@@ -94,8 +95,8 @@ export class BusinessService {
         return businessDTOResult; 
     } 
 
-    async getBusinessReviewDetails(businessId: String, keyPoints?: String[] , page : number = 1 , size: number = 100): Promise<ReviewDTO> {
-        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints , page , size)
+    async getBusinessReviewDetails(businessId: String, keyPoints?: String[] , page : number = 1 , size: number = 100 , star : number = -1): Promise<ReviewDTO> {
+        var businessReview = await this.reviewService.getHighlevelReviewInfo({ business: businessId }, keyPoints , page , size , true,  star)
         return businessReview
     }
 

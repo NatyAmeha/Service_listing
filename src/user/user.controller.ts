@@ -40,12 +40,17 @@ export class UserController {
         return result
     }
 
-    @Get("/notifications/:id/update")
+    @Get("/notifications")
     @UseGuards(AuthGuard())
-    async updateNotificationSeenStatus(@Param("id") notificatioNId?: String) {
-        // var result = await this.notificationService.updateNotificationStatus(notificatioNId, true)
-        // return result
+    async getUserNotifications(@GetUser() user: User) {
+        var result = await this.notificationService.getUserNotifications(user._id)
+        
+        return result
     }
+
+    
+
+    
 
     // PUT request ------------------------------------------------------------
 
@@ -63,6 +68,13 @@ export class UserController {
         var result = await this.userService.removeProductFromFavorite(productIds, user._id)
         return response.status(200).json(result)
     }
+
+    @Put("notification/update")
+    async updateNotificationSeenStatus(@Query("id") notificationId: String , @Res() response : Response) {
+        console.log("notifiction update" )
+        var result = await this.notificationService.updateNotificationSeenStatus(notificationId)
+        return response.status(200).json(result) 
+    }  
 
 
     @Put("/fcm/update")

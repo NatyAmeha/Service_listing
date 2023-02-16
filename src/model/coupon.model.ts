@@ -45,7 +45,7 @@ export class CouponCode {
 
 export type CouponDocument = HydratedDocument<Coupon>;
 
-export var couponSchema = new Schema<Coupon>({
+export var couponSchema = new Schema<Coupon>({ 
     name: { type: String, required: true },
     description: { type: String },
     images: { type: [String], required: true },

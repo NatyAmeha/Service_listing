@@ -16,6 +16,7 @@ import { IServiceRepo, ServiceRepository } from "src/repo/service.repo"
 import { IServiceItemRepo, ServiceItemRepository } from "src/repo/service_item.repo"
 import { Helper, IHelper } from "src/utils/helper"
 import * as _ from "lodash"
+import { rest } from "lodash"
 
 export interface ISearchHandler {
     setNextHandler(handler: ISearchHandler): void
@@ -43,16 +44,16 @@ export class ServiceSearchHandler implements ISearchHandler {
         var serviceResult: Service[] = []
         serviceResult = await this.serviceRepo.search(query, additionalQueryInfo, 100, ['reviews', "serviceItems", 'coupons'])
         if (serviceResult.length == 0) {
-            var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews' , "serviceItems", 'coupons'])
+            var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews', "serviceItems", 'coupons'])
             serviceResult = topServices
         }
 
         var serviceDTOResult = serviceResult.map(service => {
             const { reviews, serviceItems, coupons, ...rest } = service
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
-            var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: ratingInfo.rating , count : ratingInfo.count })
-            
-            var sortedcopuons = _.orderBy(coupons as Coupon[] , coupon => coupon.discountAmount , "desc")
+            var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: ratingInfo.rating, count: ratingInfo.count })
+
+            var sortedcopuons = _.orderBy(coupons as Coupon[], coupon => coupon.discountAmount, "desc")
             var couponsInfo = (sortedcopuons).map(coupon => {
                 const { service, ...couponrest } = coupon
                 return new CouponDTO({ couponInfo: couponrest })
@@ -60,7 +61,7 @@ export class ServiceSearchHandler implements ISearchHandler {
 
             return new ServiceDTO({
                 service: rest, serviceItems: serviceItems as ServiceItem[]
-                , reviewInfo: reviewDTO , coupons : couponsInfo
+                , reviewInfo: reviewDTO, coupons: couponsInfo
             })
         })
         var searchData: SearchDTO = { services: serviceDTOResult }
@@ -101,11 +102,12 @@ export class BusinessSearchHandler implements ISearchHandler {
         }
 
         var businessDTOResult = businessResult.map(business => {
+
             const { reviews, ...rest } = business
             console.log(business.reviews)
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
-            var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: ratingInfo.rating , count : ratingInfo.count })
-            return new BusinessDTO({ businessInfo: rest})
+            var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: ratingInfo.rating, count: ratingInfo.count })
+            return new BusinessDTO({ businessInfo: rest })
         })
         var searchData: SearchDTO = { businesses: businessDTOResult }
         appendedSearchData = { ...previousData, ...searchData }
@@ -123,8 +125,10 @@ export class ProductSearchHandler implements ISearchHandler {
     static INJECT_NAME = "PRODUCT_SEARCH_HANDLER"
     private nextSearchHandler?: ISearchHandler
 
+
     constructor(
         @Inject(ServiceItemRepository.injectName) private serviceItemRepo: IServiceItemRepo,
+        @Inject(Helper.INJECT_NAME) private helper: IHelper,
     ) {
     }
 
@@ -132,14 +136,30 @@ export class ProductSearchHandler implements ISearchHandler {
         this.nextSearchHandler = handler
     }
 
+
+
     async search(query: string, additionalQueryInfo?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var productResult: ServiceItem[] = []
-        productResult = await this.serviceItemRepo.search(query, additionalQueryInfo, 100)
+        productResult = await this.serviceItemRepo.search(query, additionalQueryInfo, 100, ["service",
+            {
+                path: "service", populate: { path: "coupons", model: "Coupon" },
+            },])
         if (productResult.length == 0) {
             var topServiceItem = await this.serviceItemRepo.findandSort({}, { viewCount: -1 }, 10, 1)
             productResult = topServiceItem
         }
-        var productDTOResult = productResult.map(product => new ProductDTO({ serviceItem: product }))
+        var productDTOResult = productResult.map(product => {
+            const { service, ...rest } = product
+            var serviceLevelCoupons = (service as Service).coupons as Coupon[]
+            var productInfo = new ProductDTO({ serviceItem: rest })
+            if (serviceLevelCoupons && serviceLevelCoupons.length > 0) {
+                var activeCoupons = this.helper.filterActiveCoupons(serviceLevelCoupons)
+                productInfo.couponsInfo = activeCoupons
+            }
+            return productInfo
+        })
+
+
         var searchData: SearchDTO = { products: productDTOResult }
         var appendedSearchData: SearchDTO = { ...previousData, ...searchData }
 

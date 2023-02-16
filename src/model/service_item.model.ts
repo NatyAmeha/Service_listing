@@ -11,9 +11,10 @@ export class ServiceItem {
     images?: String[]
     moreInfo?: Map<String, String>
     service?: String | Service
-    servieName? : String
+    
     business? : String | Business
     businesName? : String
+    serviceName? : String
     category?: String
     tags?: String[]
     fixedPrice?: number
@@ -25,6 +26,7 @@ export class ServiceItem {
     featured?: Boolean
     callToAction?: String
     expireDate?: Date
+    canOrder? : boolean
     variants?: ServiceItemVariant[]
     dateCreated?: Date
 
@@ -49,7 +51,9 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     images: { type: [String], required: true },
     moreInfo: { type: Map, of: String },
     service: { type: Types.ObjectId, required: true , ref : "Service" },
+    serviceName : {type : String, required : true},
     business : { type: Types.ObjectId, required: true , ref : "Business" },
+    businesName : {type : String , required : true},
     category: { type: String },
     tags: { type: [String] },
     fixedPrice: { type: Number },
@@ -71,10 +75,11 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     viewCount: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
     callToAction: { type: String, required: true },
+    canOrder : {type : Boolean , default : true},
     expireDate: { type: Date },
     dateCreated: { type: Date, default: Date.now() },
     variants: [{
-        type: {
+        type: { 
             images: { type: [String] },
             moreInfo: { type: Map, of: String },
             fixedPrice: { type: Number },

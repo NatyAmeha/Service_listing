@@ -4,16 +4,28 @@ import { Coupon, CouponCode } from "src/model/coupon.model";
 import { Review } from "src/model/review.model";
 import * as _ from "lodash"
 import { CouponDTO } from "src/dto/coupon.dto";
+import { ServiceDTO } from "src/dto/service.dto";
+import { Service } from "src/model/service.model";
 export interface IHelper {
 
     generateCouponCodes(amount: number);
     generateCode(length: number, generatedCodes: String[], dictionary?: String)
     calculateRating(reviews: Review[], keyPoints?: String[]): { rating: number, count: number }
+    getReviewsByStarAmount(reviews : Review[], starAmount :number) :Review[]// 5 star, 4 star, 3star
     filterActiveCoupons(couponsInfo: Coupon[]): CouponDTO[]
 }
 
 @Injectable()
 export class Helper implements IHelper {
+    getReviewsByStarAmount(reviews : Review[], starAmount :number):  Review[] {
+       var reviews =   _.filter(reviews, review => {
+            var keyPointRatingSum = _.sum(review.keyPoints.map(key => key.rating))
+            var averageRating = _.divide(keyPointRatingSum, review.keyPoints.length)
+           
+            return averageRating < starAmount +1 && averageRating >= starAmount
+        })
+        return reviews
+    }
 
     static INJECT_NAME = "HELPER_INJECT"
     generateCouponCodes(amount: number): CouponCode[] {
@@ -89,9 +101,9 @@ export class Helper implements IHelper {
             })
         }
         var finalRating = _.divide(overallRating, reviewCount)
-
+        finalRating = isNaN(finalRating) ? 0.0 : finalRating
         return {
-            rating: finalRating ?? 0,
+            rating: finalRating,
             count: reviewCount
         };
 
@@ -101,9 +113,10 @@ export class Helper implements IHelper {
         var couponsDTOResult = coupons
             .filter(coupon => ((coupon.totalUsed < coupon.maxAmount) && (coupon.endDate > new Date())))
             .map(cp => {
-                const { service, business, ...rest } = cp
+                const {  business, ...rest } = cp
+                
                 return new CouponDTO({ couponInfo: rest })
             })
-        return couponsDTOResult
+        return _.orderBy(couponsDTOResult , coupon => coupon.couponInfo.discountAmount , "desc")
     }
 }

@@ -24,10 +24,10 @@ export class ServiceController {
     }
 
     @Get("/reviews")
-    async getServiceReviewInfo(@Query("id") serviceId: String, @Query("key") key?: String,
+    async getServiceReviewInfo(@Query("id") serviceId: String, @Query("star", ParseIntPipe) star?: number,
         @Query("page", ParseIntPipe) page: number = 1, @Query("size", ParseIntPipe) size: number = 20) {
 
-        var reviewResult = await this.serviceService.getServiceReviews(serviceId, key?.split(","), page, size)
+        var reviewResult = await this.serviceService.getServiceReviews(serviceId,null, page, size, star)
         return reviewResult;
     }
 
@@ -124,8 +124,11 @@ export class ServiceController {
     @Role(AccountType.SERVICE_PROVIDER, AccountType.ADMIN)
     @UseGuards(AuthGuard(), RoleGuard)
     async updateServiceActiveStatus(@Query("id") serviceId: String, @Query("status", ParseBoolPipe) activeStatus: Boolean) {
+        // update status
         var result = await this.serviceService.updateServiceStatus(serviceId, activeStatus)
-        return result;
+        // update wallet
+        // send notification
+        return result; 
     }
 
     @Put("review/update")

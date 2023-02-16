@@ -28,9 +28,10 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
     async getRelatedBusiness(businessInfo: Business): Promise<BusinessDTO[]> {
         var relatedBusinesses = await this.find({ category: businessInfo.category }, ["reviews"], 10) as Business[]
 
-        var result = relatedBusinesses.map(businessInfo => {
+        var result = relatedBusinesses.filter(business => business._id.toString() != businessInfo._id.toString()).map(businessInfo => {
             const { reviews, ...rest } = businessInfo
-            return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: 3.5, count: reviews.length }) })
+            var ratingInfo = this.helper.calculateRating(reviews as Review[])
+            return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: ratingInfo.rating ?? 0, count: reviews.length }) })
         })
         return result
     }
@@ -40,7 +41,7 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
         var starterDate = new Date(Date.now())
         var currentDate = new Date(Date.now())
         starterDate.setDate(starterDate.getDate() - 30)
-       
+
         var businessesInfo = await businesses.map(business => {
             const { reviews, ...rest } = business
             //get reviews given by the last 30 days
@@ -50,7 +51,7 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
             if (thisMonthReview.length > 0) {
                 rating = this.helper.calculateRating(thisMonthReview).rating
             }
-            return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: rating , count: thisMonthReview.length }) })
+            return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: rating, count: thisMonthReview.length }) })
         })
         var sortedBusinesses = _.orderBy(businessesInfo, business => business.reviewInfo.rating, "desc")
 

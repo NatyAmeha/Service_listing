@@ -16,7 +16,7 @@ export class ReviewService {
     }
 
     async createReview(reviewInfo: Review, session?: ClientSession): Promise<Review> {
-        
+
         if (session) {
             this.reviewRepo.addSession(session)
         }
@@ -29,26 +29,53 @@ export class ReviewService {
         return result
     }
 
-    async getHighlevelReviewInfo(predicate: any, keyPoints?: String[], page: number = 1, limit: number = 1000): Promise<ReviewDTO> {
+    async getHighlevelReviewInfo(predicate: any, keyPoints?: String[],
+        page: number = 1, limit: number = 1000, divideByStarNumber: boolean = false, star: number = -1): Promise<ReviewDTO> {
         var rating = 0.0
         var keyReviewPOint: String[] = []
         var ratingByKey: KeyReview[] = []
-        var reviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 } )
+        var reviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 })
         reviews.forEach(review => {
+
             keyReviewPOint.push(...review.keyPoints.map(kp => kp.key))
         })
-        if (keyReviewPOint.length > 0) {
 
-            ratingByKey =  keyReviewPOint.map(key => {
+
+
+        if (keyReviewPOint.length > 0) {
+            console.log("key points inside", keyPoints)
+            var uniqKeyPoints = Array.from(new Set(keyReviewPOint))
+            ratingByKey = uniqKeyPoints.map(key => {
                 var keyRating = this.helper.calculateRating(reviews, [key])
-                return new KeyReview({ key: key, rating: keyRating.rating , count : keyRating.count })
+                return new KeyReview({ key: key, rating: keyRating.rating, count: keyRating.count })
             })
         }
+        console.log("key points", keyPoints)
         if (reviews.length > 0) {
             rating = this.helper.calculateRating(reviews, keyPoints).rating
         }
 
-        var reviewDTOResult = new ReviewDTO({ rating: rating , reviews: _.take(reviews, limit), keyPoint : ratingByKey, count: reviews.length })
+        if (divideByStarNumber) {
+            var fiveStar = this.helper.getReviewsByStarAmount(reviews, 5).length ?? 0
+            var fourStar = this.helper.getReviewsByStarAmount(reviews, 4).length ?? 0
+            var threeStar = this.helper.getReviewsByStarAmount(reviews, 3).length ?? 0
+            var twoStar = this.helper.getReviewsByStarAmount(reviews, 2).length ?? 0
+            var oneStar = this.helper.getReviewsByStarAmount(reviews, 1).length ?? 0
+        }
+        var selectedReviewList = reviews
+
+        if(star > -1 && star <=5){
+            var selectedReviewsByStarNumber = this.helper.getReviewsByStarAmount(reviews , star)
+            selectedReviewList= selectedReviewsByStarNumber
+        }
+
+        
+        var reviewDTOResult = new ReviewDTO({
+            rating: rating,
+            fiveStar: fiveStar, fourStar: fourStar, threeStar: threeStar, twoStar: twoStar, oneStar: oneStar,
+
+            reviews: _.take(selectedReviewList, limit), keyPoint: ratingByKey, count: reviews.length
+        })
         return reviewDTOResult
     }
 

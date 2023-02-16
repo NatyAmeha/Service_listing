@@ -40,10 +40,10 @@ export class BusinessController {
     // Get requests ------------------------------------ -----------------------------------------
 
     @Get("/reviews")
-    async getBusinessReviewInfo(@Query("id") business: String, @Query("key") key?: String,
+    async getBusinessReviewInfo(@Query("id") business: String, @Query("star" , ParseIntPipe) star?: number,
         @Query("page", ParseIntPipe) page?: number, @Query("size", ParseIntPipe) size?: number) {
-        console.log("business review called")
-        var reviewResult = await this.businesService.getBusinessReviewDetails(business, key?.split(","), page, size)
+        
+        var reviewResult = await this.businesService.getBusinessReviewDetails(business, null, page, size , star)
         return reviewResult;
     }
 

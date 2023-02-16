@@ -11,6 +11,7 @@ export class ProductDTO{
     relatedServiceItems? : ServiceItem[]
     couponsInfo? : CouponDTO[]
     favorite? : boolean = false
+    serviceLevelDiscount? : number;
     
 
     constructor(data : Partial<ProductDTO>){
