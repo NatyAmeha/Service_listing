@@ -9,10 +9,13 @@ export class SearchDTO{
     services? : ServiceDTO[]
     products? : ProductDTO[]
     coupons? : CouponDTO[]
+    exactBusinessSearch? : boolean
+    exactServiceSearch? : boolean
+    exactProductSearch? : boolean
 
     constructor(data : Partial<SearchDTO>){
         Object.assign(this, data);
     }
 
 
-}
+} 

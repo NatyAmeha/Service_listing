@@ -8,7 +8,7 @@ export class OrderDTO{
     order : Order
     items : OrderItem[]
     reviews? : ReviewDTO[]
-    business? : Business 
+    businesses? : Business[]
     couponCodes? : String[]
     userServiceReviews? : Review[]
 

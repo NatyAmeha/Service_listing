@@ -11,6 +11,7 @@ export class UserDTO{
     favoriteBusinesses? : BusinessDTO[]
     favoriteProducts? : ProductDTO[]
     orders? : OrderDTO[]
+    walletBalance? : number
     constructor(data : Partial<UserDTO>){
         Object.assign(this, data);
     }

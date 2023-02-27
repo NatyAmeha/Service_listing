@@ -27,7 +27,15 @@ export class ServiceController {
     async getServiceReviewInfo(@Query("id") serviceId: String, @Query("star", ParseIntPipe) star?: number,
         @Query("page", ParseIntPipe) page: number = 1, @Query("size", ParseIntPipe) size: number = 20) {
 
-        var reviewResult = await this.serviceService.getServiceReviews(serviceId,null, page, size, star)
+        var reviewResult = await this.serviceService.getServiceReviews(serviceId, null, page, size, star)
+        var serviceInfo = await this.serviceService.getSimpleServiceInfo(serviceId);
+
+        reviewResult.serviceInfo = new Service({
+            _id: serviceInfo._id,
+            name: serviceInfo.name, business: serviceInfo.business, businessName: serviceInfo.businessName,
+            reviewPoints: serviceInfo.reviewPoints, images: serviceInfo.images,
+
+        });
         return reviewResult;
     }
 
@@ -60,10 +68,10 @@ export class ServiceController {
     @Post("/create")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async createService(@Body() serviceInfo: Service , @GetUser() serviceCreator : User) {
+    async createService(@Body() serviceInfo: Service, @GetUser() serviceCreator: User) {
         var serviceResult = await Helper.runInTransaction(this.connection, async session => {
             serviceInfo.creator = serviceCreator._id;
-            var result = await this.serviceService.createService(serviceInfo 
+            var result = await this.serviceService.createService(serviceInfo
                 , session)
             return result;
         })
@@ -85,7 +93,10 @@ export class ServiceController {
     @UseGuards(AuthGuard())
     async createReview(@Res() response: Response, @Body() reviewInfo: Review, @GetUser() user: User) {
         const { dateCreated, _id, ...rest } = reviewInfo
-        console.log("review info", reviewInfo)
+        throw new Error("")
+
+
+        
         var result = await Helper.runInTransaction(this.connection, async session => {
             var reviewResult = await this.serviceService.createReview(rest, user, session)
             if (reviewResult)
@@ -128,7 +139,7 @@ export class ServiceController {
         var result = await this.serviceService.updateServiceStatus(serviceId, activeStatus)
         // update wallet
         // send notification
-        return result; 
+        return result;
     }
 
     @Put("review/update")

@@ -91,10 +91,10 @@ export class BrowseService {
         return result;
     }
 
-    async search(query: String): Promise<SearchDTO> {
+    async search(query: String , sortBy? : String): Promise<SearchDTO> {
         this.productSearchHandler.setNextHandler(this.serviceSearchHandler)
         this.serviceSearchHandler.setNextHandler(this.businessSearchHandler)
-        var searchResult = await this.productSearchHandler.search(query.toString(), {}, undefined, null)
+        var searchResult = await this.productSearchHandler.search(query.toString(), {} , sortBy , undefined , null)
 
         return searchResult
     }

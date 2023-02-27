@@ -50,13 +50,14 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         }
     }
 
-    async search(query: String, additionalQueryInfo: any = {} ,  limit?: number, populate?: any): Promise<T[]> {
+    async search(query: String, additionalQueryInfo: any = {}, sortBy: any = {}, limit?: number, populate?: any): Promise<T[]> {
         var searchResult = await this.model
-            .find({...additionalQueryInfo ,  $text: { $search: query.toString() } }, { score: { $meta: "textScore" } })
+            .find({ ...additionalQueryInfo, $text: { $search: query.toString() } }, { score: { $meta: "textScore" } })
             .populate(populate)
-            .sort({ score: 1 }).limit(limit).lean() as T[]
-        return searchResult 
-    } 
+
+            .sort({ ...sortBy, score: -1 }).limit(limit).lean() as T[]
+        return searchResult
+    }
 
     async findandSort(predicate: Object, sortPredicate: Object, limit: number = 100, page: number = 1, populateString?: any): Promise<T[]> {
         try {
@@ -81,8 +82,8 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
     }
     async add(data: any, upsert?: boolean): Promise<T> {
         try {
-            var result = await new this.model(data).save({ session: this.session ,  })
-            console.log("id result" , result._id)
+            var result = await new this.model(data).save({ session: this.session, })
+            console.log("id result", result._id)
             return result as T;
         } catch (ex) {
             console.log(ex)
@@ -105,14 +106,14 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
         try {
             var findResult = await this.model.findOne(query).lean() as T
             if (findResult) {
-                console.log("data found upsert" , findResult)
-                const {_id , ...rest} = data
-                var result = await this.model.updateOne({_id : findResult._id}, {$set : rest as T})
-                if(result.acknowledged){
-                    return findResult 
+                console.log("data found upsert", findResult)
+                const { _id, ...rest } = data
+                var result = await this.model.updateOne({ _id: findResult._id }, { $set: rest as T })
+                if (result.acknowledged) {
+                    return findResult
                 }
                 else
-                 throw new BadRequestException(null, "Unable to update the data")
+                    throw new BadRequestException(null, "Unable to update the data")
             }
             return await this.add(data)
         } catch (ex) {

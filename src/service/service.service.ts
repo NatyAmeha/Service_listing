@@ -107,6 +107,11 @@ export class ServiceService {
         return updateResult
     }
 
+    async getSimpleServiceInfo(serviceId : String) : Promise<Service>{
+        var result = await this.serviceRepo.get(serviceId)
+        return result;
+    }
+
     async getServiceDetails(id: String): Promise<ServiceDTO> {
         var serviceInfo = await this.serviceRepo.get(id, ['serviceItems', "business", "coupons"])
         //get related services

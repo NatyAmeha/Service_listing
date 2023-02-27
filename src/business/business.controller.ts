@@ -7,6 +7,7 @@ import { Connection } from 'mongoose';
 import { AuthNotRequired } from 'src/auth/auth.middleware';
 import { GetUser } from 'src/auth/get_user.decorator';
 import { Role, RoleGuard } from 'src/auth/role.guard';
+import { BusinessCreateDTO, BusinessDTO } from 'src/dto/business.dto';
 import { Business } from 'src/model/business.model';
 import { User } from 'src/model/user.model';
 import { ReviewService } from 'src/review/review.service';
@@ -27,7 +28,7 @@ export class BusinessController {
     @Post("/create")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async createBusiness(@Body() businessInfo: Business, @GetUser() user?: User) {
+    async createBusiness(@Body() businessInfo: BusinessCreateDTO, @GetUser() user?: User) {
         var result = await Helper.runInTransaction<Business>(this.connection, async session => {
             var businessResult = await this.businesService.createBusiness(businessInfo, user?._id, session)
             return businessResult

@@ -1,6 +1,7 @@
 # compiled output
 /dist
 /node_modules
+*.json
 
 # Logs
 logs
@@ -36,6 +37,8 @@ lerna-debug.log*
 
 # dependencies
 node_modules/
+*.json
+
 
 # IDE
 /.idea

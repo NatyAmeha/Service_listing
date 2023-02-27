@@ -5,12 +5,16 @@ import { GetUser } from 'src/auth/get_user.decorator';
 import { NotificationService } from 'src/messaging/notification.service';
 import { User } from 'src/model/user.model';
 import { CSVQueryPipe } from 'src/utils/csv_query.pipe';
+import { WalletService } from 'src/wallet/wallet.service';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
 
-    constructor(private notificationService: NotificationService, private userService: UserService) { }
+    constructor(private notificationService: NotificationService,
+        private userService: UserService,
+        private walletService: WalletService,
+    ) { }
 
     // @Get("/notifications")
     // @UseGuards(AuthGuard())
@@ -22,8 +26,10 @@ export class UserController {
     @Get("/account")
     @UseGuards(AuthGuard())
     async getUserAccountInfo(@GetUser() user: User) {
-        var result = await this.userService.getUserInfo(user._id)
-        return result
+        var userResult = await this.userService.getUserInfo(user._id)
+        var userWalletBalance = await this.walletService.getWalletBalance(user._id)
+        userResult.walletBalance = userWalletBalance
+        return userResult
     }
 
     @Get("/products/favorite")
@@ -44,13 +50,30 @@ export class UserController {
     @UseGuards(AuthGuard())
     async getUserNotifications(@GetUser() user: User) {
         var result = await this.notificationService.getUserNotifications(user._id)
-        
+
         return result
     }
 
-    
+    @Get("/reviews")
+    @UseGuards(AuthGuard())
+    async getUserReviews(@GetUser() user: User) {
+        var result = await this.userService.getUserReviews(user._id)
 
-    
+        return result
+    }
+
+    @Get("/wallet/transactions")
+    @UseGuards(AuthGuard())
+    async getUserTransactions(@GetUser() user: User) {
+        var transactionResult = await this.walletService.getWalletTransaaction(user._id)
+        console.log("transactions" , transactionResult)
+        return transactionResult
+    }
+
+
+
+
+
 
     // PUT request ------------------------------------------------------------
 
@@ -70,11 +93,11 @@ export class UserController {
     }
 
     @Put("notification/update")
-    async updateNotificationSeenStatus(@Query("id") notificationId: String , @Res() response : Response) {
-        console.log("notifiction update" )
+    async updateNotificationSeenStatus(@Query("id") notificationId: String, @Res() response: Response) {
+        console.log("notifiction update")
         var result = await this.notificationService.updateNotificationSeenStatus(notificationId)
-        return response.status(200).json(result) 
-    }  
+        return response.status(200).json(result)
+    }
 
 
     @Put("/fcm/update")

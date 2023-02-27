@@ -18,9 +18,8 @@ export class BrowseController {
     
 
     @Get("/search")
-    async search(@Query("query") query : String): Promise<SearchDTO>{        
-        var result = await this.browseService.search(query)
-        console.log("serchdata " , result)
+    async search(@Query("query") query : String ,  @Query("sort") sortBy? : String): Promise<SearchDTO>{        
+        var result = await this.browseService.search(query , sortBy)
         return result;
 
     } 

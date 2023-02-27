@@ -7,6 +7,8 @@ import { ServiceItem, serviceItemSchema } from 'src/model/service_item.model';
 import { ServiceRepository } from 'src/repo/service.repo';
 import { ServiceItemRepository } from 'src/repo/service_item.repo';
 import { ReviewModule } from 'src/review/review.module';
+import { UserModule } from 'src/user/user.module';
+import { Helper } from 'src/utils/helper';
 import { ServiceController } from './service.controller';
 import { ServiceService } from './service.service';
 
@@ -18,7 +20,8 @@ import { ServiceService } from './service.service';
     ]),
     AuthModule,
     BusinessModule,
-    ReviewModule
+    ReviewModule,
+    UserModule
   ],
   controllers: [ServiceController],
   providers: [
@@ -30,12 +33,17 @@ import { ServiceService } from './service.service';
       provide: ServiceItemRepository.injectName,
       useClass: ServiceItemRepository
     },
+    {
+      provide : Helper.INJECT_NAME,
+      useClass : Helper
+    },
     ServiceService
   ],
   exports: [
     
     ServiceRepository.injectName,
-    ServiceItemRepository.injectName
+    ServiceItemRepository.injectName,
+    Helper.INJECT_NAME
   ]
 })
 export class ServiceModule { }

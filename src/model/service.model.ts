@@ -28,6 +28,10 @@ export class Service {
     reviewPoints?: String[]
 
     static ModelName = "Service"
+
+    constructor(data : Partial<Service>){
+        Object.assign(this, data);
+    }
 }
 
 export type ServiceDocument = HydratedDocument<Service>;
@@ -66,4 +70,4 @@ export var serviceSchema = new Schema<Service>({
         },
         default: []
     }],
-}).index({"name" : "text" , "description" : "text" , "tags" : "text" })
+}).index({"name" : "text"  , "tags" : "text" })

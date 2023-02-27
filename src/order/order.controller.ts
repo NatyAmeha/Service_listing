@@ -63,6 +63,7 @@ export class OrderController {
     @UseGuards(AuthGuard())
     async getUserOrders(@GetUser() user: User) {
         var result = await this.orderService.getUserOrders(user)
+        
         return result
     }
 
@@ -79,6 +80,7 @@ export class OrderController {
     @UseGuards(AuthGuard())
     async getOrderDetails(@Param("id") orderId: String, @GetUser() user: User) {
         var result = await this.orderService.getOrderDetails(orderId, user)
+       
         return result
     }
 

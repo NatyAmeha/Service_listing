@@ -11,6 +11,7 @@ export class ServiceDTO{
     relatedServices? : ServiceDTO[]
     business? : BusinessDTO
     coupons? : CouponDTO[]
+    priceRange? : {min : number , max : number}
 
     constructor(data : Partial<ServiceDTO>){
         Object.assign(this, data);

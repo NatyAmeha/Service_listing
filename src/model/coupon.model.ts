@@ -77,6 +77,6 @@ export var couponSchema = new Schema<Coupon>({
             user: { type: Types.ObjectId, ref: "User" },
         }
     }],
-    isActive: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
     creator: { type: Types.ObjectId, ref: "User" }
 })

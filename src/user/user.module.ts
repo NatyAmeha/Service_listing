@@ -4,9 +4,13 @@ import { AuthModule } from 'src/auth/auth.module';
 import { MessageModule } from 'src/messaging/message.module';
 import { Service, serviceSchema } from 'src/model/service.model';
 import { ServiceItem, serviceItemSchema } from 'src/model/service_item.model';
+import { ReviewRepository } from 'src/repo/review.repo';
 import { ServiceRepository } from 'src/repo/service.repo';
 import { UserRepository } from 'src/repo/user.repo';
+import { ReviewModule } from 'src/review/review.module';
 import { ServiceModule } from 'src/service/service.module';
+import { Helper } from 'src/utils/helper';
+import { WalletModule } from 'src/wallet/wallet.module';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -19,7 +23,9 @@ import { UserService } from './user.service';
     ]),
     AuthModule,
     MessageModule,
-    UserModule,
+    ReviewModule,
+    WalletModule
+    
     
   ],
   controllers: [UserController],
@@ -32,7 +38,12 @@ import { UserService } from './user.service';
       provide: ServiceRepository.injectName,
       useClass: ServiceRepository
     },
+    {
+      provide : Helper.INJECT_NAME,
+      useClass : Helper
+    },
+    
     UserService],
-  exports: [UserService, UserRepository.injectName]
+  exports: [UserService, UserRepository.injectName , Helper.INJECT_NAME]
 })
 export class UserModule { }

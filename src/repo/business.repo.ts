@@ -51,6 +51,9 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
             if (thisMonthReview.length > 0) {
                 rating = this.helper.calculateRating(thisMonthReview).rating
             }
+            else {
+                rating = this.helper.calculateRating(reviews as Review[]).rating
+            }
             return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: rating, count: thisMonthReview.length }) })
         })
         var sortedBusinesses = _.orderBy(businessesInfo, business => business.reviewInfo.rating, "desc")

@@ -3,7 +3,7 @@ import { Inject } from '@nestjs/common/decorators/core/inject.decorator';
 import { InjectConnection } from '@nestjs/mongoose';
 import { ClientSession, Connection } from 'mongoose';
 import { Coupon } from 'src/model/coupon.model';
-import { Order } from 'src/model/order.model';
+import { Order, OrderItem } from 'src/model/order.model';
 import { ServiceItem } from 'src/model/service_item.model';
 import { BusinessRepository, IBusinessRepo } from 'src/repo/business.repo';
 import { CouponRepository, ICouponRepo } from 'src/repo/coupon.repo';
@@ -112,13 +112,16 @@ export class OrderService {
 
     async getOrderDetails(orderId: String, user: User): Promise<OrderDTO> {
         var reviews: Review[] = []
-        var result = await this.orderRepo.get(orderId, ["business", "items.service", "items.serviceItem"])
-        const { business, items, ...rest } = result
+        var result = await this.orderRepo.get(orderId, ["items.business", "items.service", "items.serviceItem"])
+        const {  items, ...rest } = result
+        
 
-
+    
         //get user service reviews inside the order
 
         var servicesIDInOrder = result.items.map(item => (item.service as Service)._id) as String[]
+        var businessesInOrder = result.items.map(item => (item.business) as Business)
+        var uniqBusinesses = _.uniqBy(businessesInOrder , business => business._id.toString())
         for await (const id of _.uniq(servicesIDInOrder)) {
             var review = await this.reviewRepo.findOne({ user: user._id, service: id })
             
@@ -127,17 +130,21 @@ export class OrderService {
             }
         }
 
+        // change business object to business id in items
+        items.forEach(item => item.business = (item.business as Business)._id.toString() )
+
         var orderSaveResult = new OrderDTO({
             order: rest, items: items,
-            business: business as Business, userServiceReviews: reviews
+            businesses: uniqBusinesses, userServiceReviews: reviews
         })
         return orderSaveResult
     }
 
     async getUserOrders(user: User): Promise<UserDTO> {
 
-        var result = await this.orderRepo.find({ _id: { $in: user.orders } })
-        var orderDTOList = await result.map(order => new OrderDTO({ order: order }))
+        var results = await this.orderRepo.find({ _id: { $in: user.orders } })
+        var sortedResult = _.orderBy(results , order => order.dateCreated , "desc")
+        var orderDTOList = await sortedResult.map(order => new OrderDTO({ order: order }))
         var userOrdeResult = new UserDTO({ orders: orderDTOList })
         console.log(userOrdeResult)
         return userOrdeResult

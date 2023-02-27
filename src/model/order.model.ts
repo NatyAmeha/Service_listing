@@ -37,7 +37,7 @@ export class OrderItem {
     qty?: number
     price?: number
     coupon?: String
-    business?: String
+    business?: String | Business
     service?: String | Service
     image?: String
     constructor(data: Partial<OrderItem>) {

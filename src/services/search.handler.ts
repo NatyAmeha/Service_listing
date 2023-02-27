@@ -17,10 +17,11 @@ import { IServiceItemRepo, ServiceItemRepository } from "src/repo/service_item.r
 import { Helper, IHelper } from "src/utils/helper"
 import * as _ from "lodash"
 import { rest } from "lodash"
+import { SortOption } from "src/utils/constants"
 
 export interface ISearchHandler {
     setNextHandler(handler: ISearchHandler): void
-    search(query: string, additionalQueryInfo?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO>
+    search(query: string, additionalQueryInfo?: any, sortBy?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO>
 }
 
 
@@ -39,19 +40,22 @@ export class ServiceSearchHandler implements ISearchHandler {
         this.nextSearchHandler = handler
     }
 
-    async search(query: string, additionalQueryInfo?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
+    async search(query: string, additionalQueryInfo?: any, sortBy?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var appendedSearchData: SearchDTO = {}
         var serviceResult: Service[] = []
-        serviceResult = await this.serviceRepo.search(query, additionalQueryInfo, 100, ['reviews', "serviceItems", 'coupons'])
+        var exactResult = true
+        console.log("sort options service ", sortBy)
+        serviceResult = await this.serviceRepo.search(query, additionalQueryInfo, {}, 100, ['reviews', "serviceItems", 'coupons'])
         if (serviceResult.length == 0) {
             var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews', "serviceItems", 'coupons'])
             serviceResult = topServices
+            exactResult = false;
         }
 
         var serviceDTOResult = serviceResult.map(service => {
             const { reviews, serviceItems, coupons, ...rest } = service
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
-            var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: ratingInfo.rating, count: ratingInfo.count })
+            var reviewDTO = new ReviewDTO({ rating: ratingInfo.rating, count: ratingInfo.count })
 
             var sortedcopuons = _.orderBy(coupons as Coupon[], coupon => coupon.discountAmount, "desc")
             var couponsInfo = (sortedcopuons).map(coupon => {
@@ -64,13 +68,20 @@ export class ServiceSearchHandler implements ISearchHandler {
                 , reviewInfo: reviewDTO, coupons: couponsInfo
             })
         })
-        var searchData: SearchDTO = { services: serviceDTOResult }
+        if (sortBy == SortOption.PRICE) {
+            serviceDTOResult = _.orderBy(serviceDTOResult, serviceDto => this.helper.calculateServicePriceRange(serviceDto.serviceItems).min)
+        }
+        else if (sortBy == SortOption.RATING) {
+            serviceDTOResult = _.orderBy(serviceDTOResult, serviceDto => serviceDto.reviewInfo.rating, "desc")
+        }
+
+        var searchData: SearchDTO = { services: serviceDTOResult , exactServiceSearch: exactResult }
         appendedSearchData = { ...previousData, ...searchData }
 
 
         if (this.nextSearchHandler) {
 
-            return await this.nextSearchHandler.search(query, additionalQueryInfo, appendedSearchData, user)
+            return await this.nextSearchHandler.search(query, additionalQueryInfo, sortBy, appendedSearchData, user)
         }
         else return appendedSearchData
     }
@@ -91,32 +102,43 @@ export class BusinessSearchHandler implements ISearchHandler {
         this.nextSearchHandler = handler
     }
 
-    async search(query: string, additionalQueryInfo?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
+    async search(query: string, additionalQueryInfo?: any, sortBy?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var appendedSearchData: SearchDTO = {}
         var businessResult: Business[] = []
-        businessResult = await this.businessRepo.search(query, additionalQueryInfo, 100, ['reviews'])
+        var exactResult = true
+        businessResult = await this.businessRepo.search(query, additionalQueryInfo, {}, 100, ['reviews'])
+        console.log("business search " , businessResult.length)
         if (businessResult.length == 0) {
-            var topBusinesses = await this.businessRepo.findandSort({}, { likeCount: -1 }, 10, 1, ['reviews'])
+            //fetch businesses using name from products result
+            var businessNames = previousData.products.map(p => p.serviceItem.businessName);
 
-            businessResult = topBusinesses
+            if (businessNames.length > 0) {
+                var businesses = await this.businessRepo.find({ name: { $in: _.uniq(businessNames) } } , ['reviews'])
+                businessResult = businesses
+            }
+            else {
+                var topBusinesses = await this.businessRepo.findandSort({}, { likeCount: -1 }, 10, 1, ['reviews'])
+                businessResult = topBusinesses
+                exactResult = false;
+            }
+
         }
 
         var businessDTOResult = businessResult.map(business => {
 
             const { reviews, ...rest } = business
-            console.log(business.reviews)
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
-            var reviewDTO = new ReviewDTO({ reviews: reviews as Review[], rating: ratingInfo.rating, count: ratingInfo.count })
-            return new BusinessDTO({ businessInfo: rest })
+            var reviewDTO = new ReviewDTO({rating: ratingInfo.rating, count: ratingInfo.count })
+            return new BusinessDTO({ businessInfo: rest , reviewInfo : reviewDTO })
         })
-        var searchData: SearchDTO = { businesses: businessDTOResult }
+        var searchData: SearchDTO = { businesses: businessDTOResult , exactBusinessSearch: exactResult }
         appendedSearchData = { ...previousData, ...searchData }
 
         if (this.nextSearchHandler) {
-            return await this.nextSearchHandler.search(query, additionalQueryInfo, appendedSearchData, user)
+            return await this.nextSearchHandler.search(query, additionalQueryInfo, sortBy, appendedSearchData, user)
         }
         else return appendedSearchData
-    }
+    } 
 }
 
 
@@ -138,15 +160,29 @@ export class ProductSearchHandler implements ISearchHandler {
 
 
 
-    async search(query: string, additionalQueryInfo?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
+    async search(query: string, additionalQueryInfo?: any, sortBy?: any, previousData?: SearchDTO, user?: User): Promise<SearchDTO> {
         var productResult: ServiceItem[] = []
-        productResult = await this.serviceItemRepo.search(query, additionalQueryInfo, 100, ["service",
+        var exactResult = true
+        var sortOption = {}
+        if (sortBy == SortOption.PRICE) {
+            sortOption = { fixedPrice: 1 }
+        }
+        productResult = await this.serviceItemRepo.search(query, additionalQueryInfo, sortOption, 100, ["service",
             {
                 path: "service", populate: { path: "coupons", model: "Coupon" },
             },])
+            console.log()
         if (productResult.length == 0) {
-            var topServiceItem = await this.serviceItemRepo.findandSort({}, { viewCount: -1 }, 10, 1)
-            productResult = topServiceItem
+            //fetch businesses using name from products result
+            
+            var topProducts = await this.serviceItemRepo.findandSort({}, { viewCount: -1 }, 10, 1,
+                ["service",
+                    {
+                        path: "service", populate: { path: "coupons", model: "Coupon" },
+                    },],
+            )
+            productResult = topProducts
+            exactResult = false
         }
         var productDTOResult = productResult.map(product => {
             const { service, ...rest } = product
@@ -160,11 +196,11 @@ export class ProductSearchHandler implements ISearchHandler {
         })
 
 
-        var searchData: SearchDTO = { products: productDTOResult }
+        var searchData: SearchDTO = { products: productDTOResult , exactProductSearch: exactResult }
         var appendedSearchData: SearchDTO = { ...previousData, ...searchData }
 
         if (this.nextSearchHandler) {
-            return await this.nextSearchHandler.search(query, additionalQueryInfo, appendedSearchData, user)
+            return await this.nextSearchHandler.search(query, additionalQueryInfo, sortBy, appendedSearchData, user)
         }
         else return appendedSearchData
     }

@@ -6,6 +6,7 @@ import * as _ from "lodash"
 import { CouponDTO } from "src/dto/coupon.dto";
 import { ServiceDTO } from "src/dto/service.dto";
 import { Service } from "src/model/service.model";
+import { ServiceItem } from "src/model/service_item.model";
 export interface IHelper {
 
     generateCouponCodes(amount: number);
@@ -13,10 +14,12 @@ export interface IHelper {
     calculateRating(reviews: Review[], keyPoints?: String[]): { rating: number, count: number }
     getReviewsByStarAmount(reviews : Review[], starAmount :number) :Review[]// 5 star, 4 star, 3star
     filterActiveCoupons(couponsInfo: Coupon[]): CouponDTO[]
+    calculateServicePriceRange(products : ServiceItem[]) : {min : number , max : number}
 }
 
 @Injectable()
 export class Helper implements IHelper {
+    
     getReviewsByStarAmount(reviews : Review[], starAmount :number):  Review[] {
        var reviews =   _.filter(reviews, review => {
             var keyPointRatingSum = _.sum(review.keyPoints.map(key => key.rating))
@@ -111,12 +114,22 @@ export class Helper implements IHelper {
 
     filterActiveCoupons(coupons: Coupon[]): CouponDTO[] {
         var couponsDTOResult = coupons
-            .filter(coupon => ((coupon.totalUsed < coupon.maxAmount) && (coupon.endDate > new Date())))
+            .filter(coupon => ((coupon.totalUsed < coupon.maxAmount) && coupon.isActive == true && (coupon.endDate > new Date())))
             .map(cp => {
-                const {  business, ...rest } = cp
+                const {  business , couponCodes, ...rest } = cp
                 
                 return new CouponDTO({ couponInfo: rest })
             })
         return _.orderBy(couponsDTOResult , coupon => coupon.couponInfo.discountAmount , "desc")
+    }
+
+    calculateServicePriceRange(products: ServiceItem[]): { min: number; max: number; } {
+        var productPrices : number[] = []
+        products.forEach(product =>{
+            productPrices.push(product.fixedPrice)
+        })
+       var sortedPrices =  _.sortBy(productPrices)
+       console.log("price comparator" , productPrices)
+       return {min : sortedPrices[0] , max : sortedPrices[sortedPrices.length -1]}
     }
 }
