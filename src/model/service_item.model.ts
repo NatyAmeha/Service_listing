@@ -29,6 +29,7 @@ export class ServiceItem {
     canOrder?: boolean
     variants?: ServiceItemVariant[]
     dateCreated?: Date
+    requireDate? : boolean  // control weather user must pick a date for booking or purchase
 
     static ModelName = "ServiceItem"
 
@@ -76,6 +77,7 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     canOrder: { type: Boolean, default: true },
     expireDate: { type: Date },
     dateCreated: { type: Date, default: Date.now() },
+    requireDate : {type : Boolean , default : false},
     variants: [{
         type: {
             images: { type: [String] },

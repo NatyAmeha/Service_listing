@@ -1,9 +1,12 @@
-import { Controller, Get, Param, ParseIntPipe, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { GetUser } from 'src/auth/get_user.decorator';
+import { TransactionDTO } from 'src/dto/transaction.dto';
 import { NotificationService } from 'src/messaging/notification.service';
 import { User } from 'src/model/user.model';
+import { WithdrawRequest } from 'src/model/withdraw_request.mode';
+import { WithdrawRequestStatus } from 'src/utils/constants';
 import { CSVQueryPipe } from 'src/utils/csv_query.pipe';
 import { WalletService } from 'src/wallet/wallet.service';
 import { UserService } from './user.service';
@@ -66,8 +69,13 @@ export class UserController {
     @UseGuards(AuthGuard())
     async getUserTransactions(@GetUser() user: User) {
         var transactionResult = await this.walletService.getWalletTransaaction(user._id)
-        console.log("transactions" , transactionResult)
-        return transactionResult
+        var pendingCashoutReqeust = await this.walletService.getPendingCashoutRequest(user._id)
+        console.log("pending cashout" , pendingCashoutReqeust)
+        var result = new TransactionDTO({
+            transactions: transactionResult,
+            pendingCashoutRequest: pendingCashoutReqeust
+        })
+        return result
     }
 
 
@@ -105,6 +113,24 @@ export class UserController {
     async addFcmToken(@Query("token") fcmToken: String, @Res() response: Response, @GetUser() userInfo: User) {
         var userFcmUpdateResult = await this.userService.updateFcmToken(fcmToken, userInfo._id)
         return response.status(200).json(userFcmUpdateResult)
+
+    }
+
+
+    /// post request  ---------------------------------------------------------
+    @Post("/wallet/request_cashout")
+    @UseGuards(AuthGuard())
+    async requestCashout(@Body() requestInfo: WithdrawRequest , @GetUser() user : User, @Res() response: Response) {
+        requestInfo.user = user._id
+        requestInfo.status = WithdrawRequestStatus.PENDING
+        var result = await this.walletService.requestCashout(requestInfo)
+        console.log("result" , result)
+        if (result) {
+            response.status(201).json(true)
+        }
+        else {
+            response.status(400).json(false)
+        }
 
     }
 

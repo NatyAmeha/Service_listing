@@ -16,6 +16,7 @@ import { ReviewModule } from './review/review.module';
 
 import { MessageModule } from './messaging/message.module';
 import { WalletModule } from './wallet/wallet.module';
+import { AdminModule } from './admin/admin.module';
 
 @Global()
 @Module({
@@ -32,7 +33,7 @@ import { WalletModule } from './wallet/wallet.module';
         uri: configService.get<String>("DB_URL")
       })
     })
-    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule, ReviewModule, MessageModule, WalletModule,],
+    , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule, ReviewModule, MessageModule, WalletModule, AdminModule,],
   controllers: [AppController],
   providers: [
     {

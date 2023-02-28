@@ -84,7 +84,7 @@ export class WalletService {
                     return result
                 }
             }
-            else return Promise.reject(new BadRequestException(ErrorHandler.CASHOUT_DUPLICATE_REQUEST_ERROR))
+            else return Promise.reject(new BadRequestException(ErrorHandler.CASHOUT_DUPLICATE_REQUEST_ERROR , ErrorHandler.CASHOUT_DUPLICATE_REQUEST_ERROR))
 
         } catch (ex) {
             return Promise.reject(ex)
@@ -123,6 +123,15 @@ export class WalletService {
         var walletInfo = await this.walletRepo.findOne({ owner: userId })
         var result = await this.transactionRepo.find({ $or: [{ source: walletInfo?.address }, { recepient: walletInfo?.address }] })
         return result
+    }
+
+    async getPendingCashoutRequest(userId : String) : Promise<WithdrawRequest | null>{
+        var pendingRequest = await this.withdrawRequestRepo.findOne({user : userId})
+        if(pendingRequest){
+            return pendingRequest
+        }
+        else return null;
+        
     }
 
 

@@ -17,6 +17,10 @@ export class AuthService {
 
         }
         var userREsult: User
+       
+        var finalPhoneNumber = 
+        
+
         userREsult = await this.userRepo.findOne({ phoneNumber: authInfo.phoneNumber, accountType: accountType });
         var authResult: AuthResultDTO
         if (!userREsult) {
