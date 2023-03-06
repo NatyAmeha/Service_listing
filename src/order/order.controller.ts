@@ -12,6 +12,7 @@ import { User } from 'src/model/user.model';
 import { UserService } from 'src/user/user.service';
 import { AccountType, NotificationType, OrderStatus } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
+import { WalletService } from 'src/wallet/wallet.service';
 import { OrderService } from './order.service';
 
 @Controller('order')
@@ -19,6 +20,7 @@ export class OrderController {
     constructor(private orderService: OrderService,
         private userService: UserService,
         private notificationService: NotificationService,
+        private walletService : WalletService,
         @InjectConnection() private dbConnection: Connection,) { }
 
 
@@ -28,9 +30,11 @@ export class OrderController {
         //create order
         const { _id, ...rest } = orderInfo
         var result = await Helper.runInTransaction(this.dbConnection, async session => {
+            // create order
             var orderCreateResult = await this.orderService.makeOrder(rest, user, session)
             // update user info
             var updateResult = await this.userService.addOrderToUser(user._id, orderCreateResult._id, session)
+            
             // create and send notification to service provider
             var servicesInOrder = orderCreateResult.items.map(item => item.service as String)
             if (servicesInOrder.length > 0) {
@@ -79,15 +83,18 @@ export class OrderController {
     @Get("/:id")
     @UseGuards(AuthGuard())
     async getOrderDetails(@Param("id") orderId: String, @GetUser() user: User) {
-        var result = await this.orderService.getOrderDetails(orderId, user)
+        var orderResult = await this.orderService.getOrderDetails(orderId, user)
+        var transactionRelatedToOrder = await this.walletService.getTransactionsRelatedToOrder(orderResult.order._id)
+        orderResult.transactions = transactionRelatedToOrder
+        console.log("transaction results" , transactionRelatedToOrder.length)
        
-        return result
+        return orderResult
     }
 
 
     // PUT request ---------------------------------------------------------------------------
     @Put("/updateStatus")
-    @Role(AccountType.SERVICE_PROVIDER)
+    // @Role(AccountType.SERVICE_PROVIDER)
     async updateOrderStatus(@Query("code") orderCode: String, @Body() orderStatusInfo: OrderStatusDTO) {
         //update order  data
         var updateResult = await this.orderService.updateOrderStatus(orderCode, orderStatusInfo)

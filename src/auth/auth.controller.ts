@@ -26,6 +26,7 @@ export class AuthController {
 
   @Post("/user/signin")
   async signupOrSigninUserWithPhone(@Body() userinfo: AuthDTO) {
+    console.log(userinfo)
     var tokenResult = await Helper.runInTransaction(this.connection, async session => {
       var authResult = await this.authService.signupOrSigninWithPhone(userinfo, AccountType.USER.toString());
       if (authResult.isNewUser) {

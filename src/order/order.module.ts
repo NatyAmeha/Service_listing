@@ -11,6 +11,7 @@ import { OrderRepository } from 'src/repo/order.repo';
 import { ReviewModule } from 'src/review/review.module';
 import { ServiceModule } from 'src/service/service.module';
 import { UserModule } from 'src/user/user.module';
+import { WalletModule } from 'src/wallet/wallet.module';
 import { CouponController } from './coupon.controller';
 import { CouponService } from './coupon.service';
 import { OrderController } from './order.controller';
@@ -24,6 +25,7 @@ import { OrderService } from './order.service';
         UserModule,
         ReviewModule,
         MessageModule,
+        WalletModule,
         MongooseModule.forFeature(
             [
                 { name: Order.ModelName, schema: orderSchema },

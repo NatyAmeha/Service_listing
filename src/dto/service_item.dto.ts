@@ -8,10 +8,11 @@ export class ProductDTO{
     serviceItem? : ServiceItem
     serviceInfo? : Service
     businessInfo? : Business
-    relatedServiceItems? : ServiceItem[]
+    relatedProducts? : ProductDTO[]
     couponsInfo? : CouponDTO[]
     favorite? : boolean = false
     serviceLevelDiscount? : number;
+    verified? :  boolean
     
 
     constructor(data : Partial<ProductDTO>){

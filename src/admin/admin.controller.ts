@@ -21,6 +21,5 @@ export class AdminController {
         else{
             response.status(400).json(false)
         }
-       
     }
 }

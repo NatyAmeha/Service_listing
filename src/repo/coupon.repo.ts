@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { CouponDTO } from "src/dto/coupon.dto"
 import { ServiceDTO } from "src/dto/service.dto"
+import { ProductDTO } from "src/dto/service_item.dto"
 import { Business } from "src/model/business.model"
 
 import { Coupon, CouponDocument } from "src/model/coupon.model"
@@ -69,9 +70,11 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
         var couponResult = await result.map(coupon => {
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
-                const  {serviceItems, ...rest} = ser
+                const { serviceItems, ...rest } = ser
+                var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+
                 return new ServiceDTO({
-                    service: rest, serviceItems: serviceItems as ServiceItem[]
+                    service: rest, serviceItems: productsInsideService
                 })
             })
             return new CouponDTO({
@@ -98,10 +101,11 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
         var couponDtoResult = result.map(coupon => {
             const { service, business, ...remaining } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
-                const  {serviceItems, ...rest} = ser
+                const { serviceItems, ...rest } = ser
+                var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({ serviceItem: item }))
                 return new ServiceDTO({
-                    service: rest, serviceItems: serviceItems as ServiceItem[]
-                })  
+                    service: rest, serviceItems: productsInsideService,
+                })
             })
 
             return new CouponDTO({
@@ -129,9 +133,11 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
         var couponDtoResult = result.map(coupon => {
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
-                const  {serviceItems, ...rest} = ser
+                const { serviceItems, ...rest } = ser
+                var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+
                 return new ServiceDTO({
-                    service: rest, serviceItems: serviceItems as ServiceItem[]
+                    service: rest, serviceItems: productsInsideService
                 })
             })
             return new CouponDTO({

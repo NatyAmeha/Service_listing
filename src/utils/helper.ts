@@ -7,6 +7,7 @@ import { CouponDTO } from "src/dto/coupon.dto";
 import { ServiceDTO } from "src/dto/service.dto";
 import { Service } from "src/model/service.model";
 import { ServiceItem } from "src/model/service_item.model";
+import { Business } from "src/model/business.model";
 export interface IHelper {
 
     generateCouponCodes(amount: number);
@@ -19,6 +20,7 @@ export interface IHelper {
 
 @Injectable()
 export class Helper implements IHelper {
+    
     
     getReviewsByStarAmount(reviews : Review[], starAmount :number):  Review[] {
        var reviews =   _.filter(reviews, review => {
@@ -121,6 +123,12 @@ export class Helper implements IHelper {
                 return new CouponDTO({ couponInfo: rest })
             })
         return _.orderBy(couponsDTOResult , coupon => coupon.couponInfo.discountAmount , "desc")
+    }
+
+    static isBusinessVerfied(businessInfo: Business): boolean {
+        var currentDate= new Date()
+        return (currentDate <= businessInfo.subscription?.expireDate) == true
+
     }
 
     calculateServicePriceRange(products: ServiceItem[]): { min: number; max: number; } {

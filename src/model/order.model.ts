@@ -37,9 +37,12 @@ export class OrderItem {
     qty?: number
     price?: number
     coupon?: String
+    selectedDates? : Date[]
     business?: String | Business
     service?: String | Service
     image?: String
+    deliveryStatus? : String  
+
     constructor(data: Partial<OrderItem>) {
         Object.assign(this, data);
     }
@@ -62,9 +65,11 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
             qty: { type: Number },
             price: { type: Number },
             coupon: { type: Types.ObjectId },
+            selectedDates : {type : [Date]},
             business: { type: Types.ObjectId, ref: "Business", required: true },
             service: { type: Types.ObjectId, ref: "Service", required: true },
-            image: { type: String, required: true }
+            image: { type: String, required: true },
+            deliveryStatus : {type : String , default : OrderStatus.PENDING},
         },
         default: []
     }],
@@ -75,6 +80,7 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
     moreInfo: { type: Map, of: String },
     type: { type: String, enum: OrderType, required: true },
     dateCreated: { type: Date, default: Date.now() },
+    
     address: {
         type: {
             location: {

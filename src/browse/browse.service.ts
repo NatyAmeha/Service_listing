@@ -7,6 +7,8 @@ import { DashBoardDTO } from 'src/dto/dashboard.dto';
 import { ReviewDTO } from 'src/dto/review.dto';
 import { SearchDTO } from 'src/dto/search.dto';
 import { ServiceDTO } from 'src/dto/service.dto';
+import { ProductDTO } from 'src/dto/service_item.dto';
+import { Business } from 'src/model/business.model';
 import { Category } from 'src/model/category.model';
 import { Coupon } from 'src/model/coupon.model';
 import { Order } from 'src/model/order.model';
@@ -63,10 +65,11 @@ export class BrowseService {
             var reviewInfo = await this.reviewService.getHighlevelReviewInfo({ service: service._id })
             const { coupons, serviceItems, ...rest } = service
             var activeCoupons = this.helper.filterActiveCoupons(coupons as Coupon[])
+            var productsInsideService =  (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item})) 
             return new ServiceDTO({
                 service: rest, coupons: activeCoupons,
                 reviewInfo: reviewInfo,
-                serviceItems: serviceItems as ServiceItem[]
+                serviceItems: productsInsideService
             })
         }))
 
@@ -81,7 +84,14 @@ export class BrowseService {
         })
         if (services.length > 0) {
             var serviceItemResult = await this.serviceItemRepo.getServiceItems(services, { "featured": -1 })
-            browseResult.products = serviceItemResult
+            var productResults = serviceItemResult.map(item =>{
+                const {business , ...rest} = item
+                
+                var isProductVerified = Helper.isBusinessVerfied(business as Business)
+                return new ProductDTO({serviceItem : rest , businessInfo : business as Business , verified : isProductVerified})
+                
+            })
+            browseResult.products = productResults
         }
         return browseResult
     }

@@ -45,15 +45,15 @@ export class ServiceSearchHandler implements ISearchHandler {
         var serviceResult: Service[] = []
         var exactResult = true
         console.log("sort options service ", sortBy)
-        serviceResult = await this.serviceRepo.search(query, additionalQueryInfo, {}, 100, ['reviews', "serviceItems", 'coupons'])
+        serviceResult = await this.serviceRepo.search(query, additionalQueryInfo, {}, 100, ['reviews' , "business", "serviceItems" ,, 'coupons'])
         if (serviceResult.length == 0) {
-            var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews', "serviceItems", 'coupons'])
+            var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews',  'business', "serviceItems", 'coupons'])
             serviceResult = topServices
             exactResult = false;
         }
 
         var serviceDTOResult = serviceResult.map(service => {
-            const { reviews, serviceItems, coupons, ...rest } = service
+            const { reviews, serviceItems, coupons , business, ...rest } = service
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
             var reviewDTO = new ReviewDTO({ rating: ratingInfo.rating, count: ratingInfo.count })
 
@@ -62,20 +62,25 @@ export class ServiceSearchHandler implements ISearchHandler {
                 const { service, ...couponrest } = coupon
                 return new CouponDTO({ couponInfo: couponrest })
             })
-
+            var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+            
             return new ServiceDTO({
-                service: rest, serviceItems: serviceItems as ServiceItem[]
-                , reviewInfo: reviewDTO, coupons: couponsInfo
+                service: rest, serviceItems: productsInsideService
+                , reviewInfo: reviewDTO, coupons: couponsInfo,
+                verified : Helper.isBusinessVerfied(business as Business)
             })
         })
         if (sortBy == SortOption.PRICE) {
-            serviceDTOResult = _.orderBy(serviceDTOResult, serviceDto => this.helper.calculateServicePriceRange(serviceDto.serviceItems).min)
+            serviceDTOResult = _.orderBy(serviceDTOResult, serviceDto => {
+                var products = serviceDto.serviceItems.map(e => e.serviceItem)
+                return this.helper.calculateServicePriceRange(products).min 
+            })
         }
         else if (sortBy == SortOption.RATING) {
             serviceDTOResult = _.orderBy(serviceDTOResult, serviceDto => serviceDto.reviewInfo.rating, "desc")
         }
 
-        var searchData: SearchDTO = { services: serviceDTOResult , exactServiceSearch: exactResult }
+        var searchData: SearchDTO = { services: serviceDTOResult, exactServiceSearch: exactResult }
         appendedSearchData = { ...previousData, ...searchData }
 
 
@@ -107,13 +112,12 @@ export class BusinessSearchHandler implements ISearchHandler {
         var businessResult: Business[] = []
         var exactResult = true
         businessResult = await this.businessRepo.search(query, additionalQueryInfo, {}, 100, ['reviews'])
-        console.log("business search " , businessResult.length)
         if (businessResult.length == 0) {
             //fetch businesses using name from products result
             var businessNames = previousData.products.map(p => p.serviceItem.businessName);
 
             if (businessNames.length > 0) {
-                var businesses = await this.businessRepo.find({ name: { $in: _.uniq(businessNames) } } , ['reviews'])
+                var businesses = await this.businessRepo.find({ name: { $in: _.uniq(businessNames) } }, ['reviews'])
                 businessResult = businesses
             }
             else {
@@ -128,17 +132,17 @@ export class BusinessSearchHandler implements ISearchHandler {
 
             const { reviews, ...rest } = business
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
-            var reviewDTO = new ReviewDTO({rating: ratingInfo.rating, count: ratingInfo.count })
-            return new BusinessDTO({ businessInfo: rest , reviewInfo : reviewDTO })
+            var reviewDTO = new ReviewDTO({ rating: ratingInfo.rating, count: ratingInfo.count })
+            return new BusinessDTO({ businessInfo: rest, reviewInfo: reviewDTO })
         })
-        var searchData: SearchDTO = { businesses: businessDTOResult , exactBusinessSearch: exactResult }
+        var searchData: SearchDTO = { businesses: businessDTOResult, exactBusinessSearch: exactResult }
         appendedSearchData = { ...previousData, ...searchData }
 
         if (this.nextSearchHandler) {
             return await this.nextSearchHandler.search(query, additionalQueryInfo, sortBy, appendedSearchData, user)
         }
         else return appendedSearchData
-    } 
+    }
 }
 
 
@@ -168,26 +172,33 @@ export class ProductSearchHandler implements ISearchHandler {
             sortOption = { fixedPrice: 1 }
         }
         productResult = await this.serviceItemRepo.search(query, additionalQueryInfo, sortOption, 100, ["service",
+            { path: "service", populate: { path: "coupons", model: "Coupon" }, },
             {
-                path: "service", populate: { path: "coupons", model: "Coupon" },
-            },])
-            console.log()
+                path: "business", model: "Business", select: { _id: 1, subscription: 1 }
+            }
+        ])
+
         if (productResult.length == 0) {
             //fetch businesses using name from products result
-            
+
             var topProducts = await this.serviceItemRepo.findandSort({}, { viewCount: -1 }, 10, 1,
-                ["service",
+                [
                     {
                         path: "service", populate: { path: "coupons", model: "Coupon" },
-                    },],
+                    },
+                    {
+                        path: "business", model: "Business", select: { _id: 1, subscription: 1 }
+                    }
+                ],
             )
             productResult = topProducts
             exactResult = false
         }
         var productDTOResult = productResult.map(product => {
-            const { service, ...rest } = product
+            const { service, business ,  ...rest } = product
+            
             var serviceLevelCoupons = (service as Service).coupons as Coupon[]
-            var productInfo = new ProductDTO({ serviceItem: rest })
+            var productInfo = new ProductDTO({ serviceItem: rest  , verified : Helper.isBusinessVerfied(business as Business)})
             if (serviceLevelCoupons && serviceLevelCoupons.length > 0) {
                 var activeCoupons = this.helper.filterActiveCoupons(serviceLevelCoupons)
                 productInfo.couponsInfo = activeCoupons
@@ -196,7 +207,7 @@ export class ProductSearchHandler implements ISearchHandler {
         })
 
 
-        var searchData: SearchDTO = { products: productDTOResult , exactProductSearch: exactResult }
+        var searchData: SearchDTO = { products: productDTOResult, exactProductSearch: exactResult }
         var appendedSearchData: SearchDTO = { ...previousData, ...searchData }
 
         if (this.nextSearchHandler) {

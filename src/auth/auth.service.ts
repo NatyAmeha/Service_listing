@@ -22,7 +22,8 @@ export class AuthService {
         
 
         userREsult = await this.userRepo.findOne({ phoneNumber: authInfo.phoneNumber, accountType: accountType });
-        var authResult: AuthResultDTO
+       
+        var isNewUser = false;
         if (!userREsult) {
             console.log("user created")
             userREsult = new User()
@@ -33,13 +34,16 @@ export class AuthService {
             userREsult.favoriteProducts = []
             userREsult.favoriteBusinesses = []
             userREsult = await this.userRepo.add(userREsult);
-            authResult.isNewUser = true
+            isNewUser = true;
         }
         //send token
         var tokenREsult = await this.jwtStrategy.sign(userREsult)
-        authResult.token = tokenREsult
-        authResult.user = userREsult
-
+        var authResult : AuthResultDTO = {
+            token : tokenREsult,
+            isNewUser : isNewUser,
+            user : userREsult
+        }
+        
         return authResult;
 
     }

@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ClientSession } from "mongoose";
 import { CouponDTO } from "src/dto/coupon.dto";
 import { ServiceDTO } from "src/dto/service.dto";
+import { ProductDTO } from "src/dto/service_item.dto";
 import { Business } from "src/model/business.model";
 import { Coupon, CouponCode } from "src/model/coupon.model";
 import { Service } from "src/model/service.model";
@@ -57,7 +58,8 @@ export class CouponService {
         const { service, business, ...rest } = result
         var serviceDTOResult = (service as Service[]).map(ser =>{
             const {serviceItems , ...rest} = ser;
-            return new ServiceDTO({ service: rest , serviceItems : serviceItems as ServiceItem[] })
+            var products = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+            return new ServiceDTO({ service: rest , serviceItems : products })
         })
         var couponsDtoResult = new CouponDTO({ couponInfo: rest, services: serviceDTOResult, business: business as Business })
         return couponsDtoResult 

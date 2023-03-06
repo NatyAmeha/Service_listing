@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res, Inject } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
@@ -10,6 +10,7 @@ import { Review } from 'src/model/review.model';
 import { Service } from 'src/model/service.model';
 import { ServiceItem } from 'src/model/service_item.model';
 import { User } from 'src/model/user.model';
+import { ITransactionRepo, TransactionRepository } from 'src/repo/transaction.repo';
 import { ReviewService } from 'src/review/review.service';
 import { AccountType } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
@@ -19,6 +20,7 @@ import { ServiceService } from './service.service';
 export class ServiceController {
     constructor(private serviceService: ServiceService,
         private reviewService: ReviewService,
+
         @InjectConnection() private connection: Connection) {
 
     }
@@ -51,7 +53,6 @@ export class ServiceController {
 
     @Get("/:id")
     async getServiceDetails(@Param("id") businessId: String) {
-
         var serviceResult = await this.serviceService.getServiceDetails(businessId)
         return serviceResult
 
@@ -93,10 +94,7 @@ export class ServiceController {
     @UseGuards(AuthGuard())
     async createReview(@Res() response: Response, @Body() reviewInfo: Review, @GetUser() user: User) {
         const { dateCreated, _id, ...rest } = reviewInfo
-        throw new Error("")
 
-
-        
         var result = await Helper.runInTransaction(this.connection, async session => {
             var reviewResult = await this.serviceService.createReview(rest, user, session)
             if (reviewResult)
@@ -144,9 +142,13 @@ export class ServiceController {
 
     @Put("review/update")
     @UseGuards(AuthGuard())
-    async updateReview(@Query("id") reviewId: String, @Body() reviewInfo: Review, @Res() response: Response) {
-        var reviewResult = await this.reviewService.updateReview(reviewId, reviewInfo)
-        return response.status(200).json(reviewResult)
+    async updateReview(@Query("id") reviewId: String, @Body() reviewInfo: Review, @GetUser() user: User, @Res() response: Response) {
+        var result = await Helper.runInTransaction(this.connection, async session => {
+            var reviewResult = await this.serviceService.updateReview(reviewId, reviewInfo, user._id, session)
+            return reviewResult;
+        })
+        console.log("up result" , result)
+        return response.status(200).json(result)
     }
 
 }

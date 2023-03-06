@@ -1,5 +1,6 @@
 
 import { HydratedDocument, Schema, Types } from "mongoose"
+import { Constants, ServiceItemType } from "src/utils/constants"
 import { Business } from "./business.model"
 import { Service } from "./service.model"
 
@@ -9,6 +10,7 @@ export class ServiceItem {
     name?: String
     description?: String
     images?: String[]
+    type? : String   // SERVICE OR PRODUCT
     moreInfo?: Map<String, String>
     service?: String | Service
 
@@ -49,11 +51,12 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     description: { type: String },
     images: { type: [String], required: true },
     moreInfo: { type: Map, of: String },
+    type : {type : String , required : true , enum : ServiceItemType},
     service: { type: Types.ObjectId, required: true, ref: "Service" },
     serviceName: { type: String, required: true },
     business: { type: Types.ObjectId, required: true, ref: "Business" },
     businessName: { type: String, required: true },
-    category: { type: String },
+    category: { type: String , required : true },
     tags: { type: [String] },
     fixedPrice: { type: Number, required: true },
     minPrice: {

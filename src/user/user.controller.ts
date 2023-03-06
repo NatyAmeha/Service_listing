@@ -3,9 +3,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { GetUser } from 'src/auth/get_user.decorator';
 import { TransactionDTO } from 'src/dto/transaction.dto';
+import { WalletDTO } from 'src/dto/wallet.dto';
 import { NotificationService } from 'src/messaging/notification.service';
 import { User } from 'src/model/user.model';
 import { WithdrawRequest } from 'src/model/withdraw_request.mode';
+import { ReviewService } from 'src/review/review.service';
 import { WithdrawRequestStatus } from 'src/utils/constants';
 import { CSVQueryPipe } from 'src/utils/csv_query.pipe';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -17,6 +19,7 @@ export class UserController {
     constructor(private notificationService: NotificationService,
         private userService: UserService,
         private walletService: WalletService,
+        private reviewService : ReviewService
     ) { }
 
     // @Get("/notifications")
@@ -70,12 +73,31 @@ export class UserController {
     async getUserTransactions(@GetUser() user: User) {
         var transactionResult = await this.walletService.getWalletTransaaction(user._id)
         var pendingCashoutReqeust = await this.walletService.getPendingCashoutRequest(user._id)
-        console.log("pending cashout" , pendingCashoutReqeust)
-        var result = new TransactionDTO({
+        var walletBalance = await this.walletService.getWalletBalance(user._id)
+        
+        var result = new WalletDTO({
+            balance : walletBalance,
             transactions: transactionResult,
             pendingCashoutRequest: pendingCashoutReqeust
         })
         return result
+    }
+
+    @Get("/wallet/transaction/:id")
+    @UseGuards(AuthGuard())
+    async getTransactionDetail(@Param("id") transactionId: String, @GetUser() user: User) {
+       
+        var result = await this.walletService.getTransactionDetail(transactionId)
+        if (result.service) {
+            var serviceReview = await this.reviewService.getHighlevelReviewInfo({service : result.service.service._id})
+            result.service = {...result.service , reviewInfo : serviceReview}
+            
+            var review = await this.userService.getUserReviewForService(user._id, result.service.service._id)
+            result.review = review
+        }
+       
+        return result;
+
     }
 
 
@@ -120,11 +142,11 @@ export class UserController {
     /// post request  ---------------------------------------------------------
     @Post("/wallet/request_cashout")
     @UseGuards(AuthGuard())
-    async requestCashout(@Body() requestInfo: WithdrawRequest , @GetUser() user : User, @Res() response: Response) {
+    async requestCashout(@Body() requestInfo: WithdrawRequest, @GetUser() user: User, @Res() response: Response) {
         requestInfo.user = user._id
         requestInfo.status = WithdrawRequestStatus.PENDING
         var result = await this.walletService.requestCashout(requestInfo)
-        console.log("result" , result)
+        console.log("result", result)
         if (result) {
             response.status(201).json(true)
         }

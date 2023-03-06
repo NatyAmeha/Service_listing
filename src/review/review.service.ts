@@ -26,6 +26,7 @@ export class ReviewService {
 
     async updateReview(reviewId: String, newReviewInfo: Review): Promise<Boolean> {
         var result = await this.reviewRepo.update({ _id: reviewId }, newReviewInfo)
+        console.log("review update result" , result)
         return result
     }
 
@@ -50,7 +51,7 @@ export class ReviewService {
                 return new KeyReview({ key: key, rating: keyRating.rating, count: keyRating.count })
             })
         }
-        console.log("key points", keyPoints)
+        
         if (reviews.length > 0) {
             rating = this.helper.calculateRating(reviews, keyPoints).rating
         }

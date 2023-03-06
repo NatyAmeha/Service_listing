@@ -17,6 +17,7 @@ export class BusinessDTO{
 
     coupons? : CouponDTO[]
     favorite? : boolean
+    verified? : boolean
     Subscription? : SubscriptionPlan
     constructor(data : Partial<BusinessDTO>){
         Object.assign(this, data);

@@ -9,6 +9,7 @@ import { ServiceItemRepository } from 'src/repo/service_item.repo';
 import { ReviewModule } from 'src/review/review.module';
 import { UserModule } from 'src/user/user.module';
 import { Helper } from 'src/utils/helper';
+import { WalletModule } from 'src/wallet/wallet.module';
 import { ServiceController } from './service.controller';
 import { ServiceService } from './service.service';
 
@@ -19,6 +20,7 @@ import { ServiceService } from './service.service';
       { name: ServiceItem.ModelName, schema: serviceItemSchema }
     ]),
     AuthModule,
+    WalletModule,
     BusinessModule,
     ReviewModule,
     UserModule

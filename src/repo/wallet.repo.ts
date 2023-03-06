@@ -19,7 +19,6 @@ export class WalletRepository extends MongodbRepo<WalletDocument> implements IWa
     }
 
     async getWalletBalance(userId : String){
-        console.log("user id" , userId)
         var walletInfo = await this.findOne({ owner: userId })
         if(walletInfo){
             var trRecords = await this.transactionRepo.find({ $or: [{ source: walletInfo?.address }, { recepient: walletInfo?.address }] })
@@ -29,14 +28,15 @@ export class WalletRepository extends MongodbRepo<WalletDocument> implements IWa
             trRecords.forEach(tr =>{
                 if(tr.type == TransactionType.DEPOSIT) totalAmount += tr.amount!!
                 else if(tr.type == TransactionType.REWARD) totalAmount += tr.amount!!
+                else if(tr.type == TransactionType.DISCOUNTCASHBACK) totalAmount += tr.amount!!
                else if(tr.type == TransactionType.CASHBACK) totalAmount += tr.amount!!
                 else if(tr.type == TransactionType.PURCHASE) totalAmount -= tr.amount!!
                 else if(tr.type == TransactionType.WITHDRAWAL) totalAmount -= tr.amount!!
                 
             })
             console.log("balance" , walletInfo?.balance , "verified" , totalAmount)
-            if(totalAmount < 0) return 0
-            else return totalAmount
+            return totalAmount 
+            
         }
         else{
             // return Promise.reject(new BadRequestException("", "Unable to find wallet for this user"))

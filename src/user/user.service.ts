@@ -17,9 +17,9 @@ import { Helper } from 'src/utils/helper';
 @Injectable()
 export class UserService {
     constructor(@Inject(UserRepository.injectName) private userRepo: IUserRepo,
-        @Inject(Helper.INJECT_NAME) private helper : Helper,
+        @Inject(Helper.INJECT_NAME) private helper: Helper,
         @Inject(ServiceRepository.injectName) private serviceRepo: IServiceRepo,
-        @Inject(ReviewRepository.injectName)private reviewRepo : IReviewRepo) { }
+        @Inject(ReviewRepository.injectName) private reviewRepo: IReviewRepo) { }
 
     async addOrderToUser(userId: String, orderId: String, session?: ClientSession): Promise<Boolean> {
         if (session) {
@@ -69,32 +69,46 @@ export class UserService {
     }
 
     async getUserFavoriteProducts(userId: String): Promise<UserDTO> {
-        var userResult = await this.userRepo.get(userId, ["favoriteProducts"]);
+        var userResult = await this.userRepo.get(userId, [
+            {
+                path: "favoriteProducts", populate: { path: "business", model: "Business", select: { _id: 1, name: 1, subscription: 1 } }
+            }]);
         const { favoriteProducts, ...rest } = userResult
-        var favoriteProductResult = (favoriteProducts as ServiceItem[]).map(product => new ProductDTO({ serviceItem: product }))
+        var favoriteProductResult = (favoriteProducts as ServiceItem[]).map(product => {
+            const {business , ...rest} = product
+            console.log("user product with businesses" , business)
+            var isProductVerified = Helper.isBusinessVerfied(business as Business)
+            return new ProductDTO({ serviceItem: rest , verified : isProductVerified })
+        })
         var userDTOResult = new UserDTO({ favoriteProducts: favoriteProductResult })
         return userDTOResult
     }
 
     async getUserFavoriteBusinesses(userId: String): Promise<UserDTO> {
-        var userResult = await this.userRepo.get(userId, [ {
+        var userResult = await this.userRepo.get(userId, [{
             path: "favoriteBusinesses", populate: { path: "reviews", model: "Review" },
         },]);
         const { favoriteBusinesses, ...rest } = userResult
         var favoriteBusinessResult = (favoriteBusinesses as Business[]).map(business => {
-            const {reviews , ...businessRest} = business
-           var reviewInfo = this.helper.calculateRating(reviews as Review[])
+            const { reviews, ...businessRest } = business
+            var reviewInfo = this.helper.calculateRating(reviews as Review[])
 
-            return new BusinessDTO({ businessInfo: businessRest , reviewInfo : new ReviewDTO(reviewInfo) })
+            return new BusinessDTO({ businessInfo: businessRest, reviewInfo: new ReviewDTO(reviewInfo) })
         })
         var userDTOResult = new UserDTO({ favoriteBusinesses: favoriteBusinessResult })
         return userDTOResult
     }
 
-    async getUserReviews(userId : String) : Promise<ReviewDTO>{
-        var reviewResult = await this.reviewRepo.find({ user: userId})
-        var reviewInfo = new ReviewDTO({reviews : reviewResult})
+    async getUserReviews(userId: String): Promise<ReviewDTO> {
+        var reviewResult = await this.reviewRepo.find({ user: userId })
+        var reviewInfo = new ReviewDTO({ reviews: reviewResult })
         return reviewInfo
+    }
+
+    async getUserReviewForService(userId: String, serviceId: String): Promise<Review | null> {
+        var result = await this.reviewRepo.findOne({ user: userId, service: serviceId })
+        if (result) return result;
+        else return null;
     }
 
 

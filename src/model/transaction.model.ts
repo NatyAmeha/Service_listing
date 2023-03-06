@@ -1,4 +1,7 @@
-import { HydratedDocument, Schema } from "mongoose"
+import { HydratedDocument, Schema, Types } from "mongoose"
+import { TransactionAction } from "src/utils/constants"
+import { Order } from "./order.model"
+import { ServiceItem } from "./service_item.model"
 
 export class Transaction{
     _id? : String
@@ -7,9 +10,14 @@ export class Transaction{
     sourceName? : String
     recepient? : String   // wallet address of the recepient
     recepientName? : String
-    status? : number  // including pending, verified
+    status? : String  // including pending, verified
+    action? : string
     description? : String
     type? : number  // inclucing donation , product purchase,  recharge , cashout
+    service? : String
+    product? : String | ServiceItem
+    order? : String | Order
+
     dateCreated? : Date
 
     static ModelName = "Transaction"
@@ -27,8 +35,12 @@ export const transactionSchema = new Schema<Transaction>({
     sourceName : {type : String }, 
     recepient : {type : String },  // it can be null for instance when user made a purchase
     recepientName : {type : String , required : true},   
-    status : {type : Number , required : true },  
+    status : {type : String , required : true },  
+    action : {type : String , enum : TransactionAction},
     description : {type : String}, 
     type : {type : Number , required : true },
+    service : {type : Types.ObjectId , ref : "Service"},
+    product : {type : Types.ObjectId , ref : "ServiceItem"},
+    order : {type : Types.ObjectId , ref : "Order"},
     dateCreated : {type : Date , default : Date.now()}
 })
