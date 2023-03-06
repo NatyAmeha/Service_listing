@@ -3,6 +3,9 @@
 /node_modules
 *.json
 
+komkum-566ac-firebase-adminsdk-u3ghc-557070864c.json
+
+
 # Logs
 logs
 *.log
@@ -37,7 +40,7 @@ lerna-debug.log*
 
 # dependencies
 node_modules/
-*.json
+
 
 
 # IDE
@@ -81,3 +84,5 @@ yarn-error.log
 /packages/graphql
 /benchmarks/memory
 build/config\.gypi
+komkum-566ac-firebase-adminsdk-u3ghc-557070864c.json
+/package.json
