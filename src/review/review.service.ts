@@ -37,7 +37,6 @@ export class ReviewService {
         var ratingByKey: KeyReview[] = []
         var reviews = await this.reviewRepo.findandSort(predicate, { dateCreated: -1 })
         reviews.forEach(review => {
-
             keyReviewPOint.push(...review.keyPoints.map(kp => kp.key))
         })
 

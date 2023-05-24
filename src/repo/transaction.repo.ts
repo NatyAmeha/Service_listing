@@ -18,7 +18,7 @@ export class TransactionRepository extends MongodbRepo<TransactionDocument> impl
     }
 
     async getPendingDiscountTransaction(serviceId : String) : Promise<Transaction[]>{
-        var result = await this.find({service : serviceId , status : TransactionStatus.PENDING} , ["order"])
+        var result = await this.find({service : serviceId , status : TransactionStatus.PENDING} , ["order" ])
         return result;
     }
 }

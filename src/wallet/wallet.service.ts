@@ -146,10 +146,11 @@ export class WalletService {
         }, ["service", "product"])
         var transactionDTOResult = result.map(transaction => {
             const { service, product, ...rest } = transaction
+            
             return new TransactionDTO({
                 transaction: rest,
                 service: new ServiceDTO({ service: service as Service }),
-                product: new ProductDTO({ serviceItem: product as ServiceItem }),
+                product: new ProductDTO({ serviceItem: product as ServiceItem, priceRange : Helper.calculateProductPrice(product as ServiceItem |null) }),
             })
         })
         return transactionDTOResult
@@ -163,7 +164,7 @@ export class WalletService {
         return new TransactionDTO({
             transaction: rest,
             service: new ServiceDTO({ service: service as Service }),
-            product: new ProductDTO({ serviceItem: product as ServiceItem }),
+            product: new ProductDTO({ serviceItem: product as ServiceItem , priceRange : Helper.calculateProductPrice(product as ServiceItem) }),
             orderInfo: new OrderDTO({ order: order as Order })
         })
     }
@@ -175,7 +176,7 @@ export class WalletService {
             return new TransactionDTO({
                 transaction: rest,
                 service: new ServiceDTO({ service: service as Service }),
-                product: new ProductDTO({ serviceItem: product as ServiceItem }),
+                product: new ProductDTO({ serviceItem: product as ServiceItem , priceRange : Helper.calculateProductPrice(product as ServiceItem) }),
                 orderInfo: new OrderDTO({ order: order as Order })
             })
         })

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -11,12 +11,19 @@ import { AccountType } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
 import { WalletService } from 'src/wallet/wallet.service';
 import { AuthService } from './auth.service';
+import { GetUser } from './get_user.decorator';
 
 @Controller('auth')
 export class AuthController {
 
   constructor(private authService: AuthService, private walletService: WalletService,
     @InjectConnection() private connection: Connection,) { }
+
+  @Post("/admin/signin")
+  async signupOrSigninAdminWithPhone(@Body() userinfo: AuthDTO) {
+    var result = await this.authService.signupOrSigninWithPhone(userinfo, AccountType.ADMIN.toString());
+    return result;
+  }
 
   @Post("/provider/signin")
   async signupOrSigninSellerWithPhone(@Body() userinfo: AuthDTO) {
@@ -46,6 +53,8 @@ export class AuthController {
     return tokenResult;
   }
 
+
+
   @Get("/users")
   @UseGuards(AuthGuard())
   async getUser(@Req() req: Request) {
@@ -53,4 +62,7 @@ export class AuthController {
     var result = await this.authService.getUser();
     return result;
   }
+
+
+
 }

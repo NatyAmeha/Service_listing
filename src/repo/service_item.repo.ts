@@ -24,14 +24,14 @@ export class ServiceItemRepository extends MongodbRepo<ServiceItemDocument> impl
         if (sortInfo) {
             var result = await this.findandSort({ service: { $in: serviceId } }, sortInfo!, null, null,
                 [{
-                    path: "business", model: "Business", select: { _id: 1, name: 1, subscription: 1 }
+                    path: "business", model: "Business", select: { _id: 1, name: 1, subscription: 1 , verified : 1 }
                 }]) as ServiceItem[]
 
         }
         else {
             var result = await this.find({ service: { $in: serviceId } }, [
                 {
-                    path: "business", model: "Business", select: { _id: 1, name: 1, subscription: 1 }
+                    path: "business", model: "Business", select: { _id: 1, name: 1, subscription: 1 , verified : 1 }
                 }
             ]) as ServiceItem[]
         }

@@ -45,6 +45,7 @@ export var userSchema : Schema = new mongoose.Schema<User>({
                 type: { type: String, enum: ["Point"], required: false },
                 coordinates: { type: [Number], required: false }
             },
+            mapLink : {type : String},
             phoneNumber: { type: String },
             localAddress: { type: String }
         },

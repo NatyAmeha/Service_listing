@@ -47,7 +47,7 @@ export type CouponDocument = HydratedDocument<Coupon>;
 
 export var couponSchema = new Schema<Coupon>({ 
     name: { type: String, required: true },
-    description: { type: String },
+    description: { type: String , trim : true },
     images: { type: [String], required: true },
     couponType: { type: String, required: true, enum: CouponType },
     maxAmount: {
@@ -66,8 +66,8 @@ export var couponSchema = new Schema<Coupon>({
             return item.startDate != null;
         }
     },
-    businessName: { type: String, required: true },
-    serviceName: { type: String, required: true },
+    businessName: { type: String, required: true , trim : true },
+    serviceName: { type: String, required: true , trim : true },
     business: { type: Types.ObjectId, required: true, ref: "Business" },
     service: { type: [Types.ObjectId], required: true, ref: "Service" , default : [] },
     couponCodes: [{

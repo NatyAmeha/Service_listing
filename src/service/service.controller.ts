@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res, Inject } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
-import { Response } from 'express';
+import { Response, response } from 'express';
 import { Connection } from 'mongoose';
 import { AuthNotRequired } from 'src/auth/auth.middleware';
 import { GetUser } from 'src/auth/get_user.decorator';
@@ -10,17 +10,22 @@ import { Review } from 'src/model/review.model';
 import { Service } from 'src/model/service.model';
 import { ServiceItem } from 'src/model/service_item.model';
 import { User } from 'src/model/user.model';
-import { ITransactionRepo, TransactionRepository } from 'src/repo/transaction.repo';
+
 import { ReviewService } from 'src/review/review.service';
-import { AccountType } from 'src/utils/constants';
+import { AccountType, NotificationType } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
 import { ServiceService } from './service.service';
+import { NotificationService } from 'src/messaging/notification.service';
+import { Notification } from 'src/model/notification.model';
+import { UserService } from 'src/user/user.service';
 
 @Controller('service')
 export class ServiceController {
     constructor(private serviceService: ServiceService,
         private reviewService: ReviewService,
+        private userService: UserService,
 
+        private notificationService: NotificationService,
         @InjectConnection() private connection: Connection) {
 
     }
@@ -70,63 +75,83 @@ export class ServiceController {
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
     async createService(@Body() serviceInfo: Service, @GetUser() serviceCreator: User) {
+        console.log("Service info", serviceInfo)
+        const { _id, ...restServiceInfo } = serviceInfo
         var serviceResult = await Helper.runInTransaction(this.connection, async session => {
             serviceInfo.creator = serviceCreator._id;
-            var result = await this.serviceService.createService(serviceInfo
-                , session)
+            var result = await this.serviceService.createService(restServiceInfo, session)
             return result;
         })
         return serviceResult
     }
 
-    @Post("/item/add")
+    @Post("/product/create")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async addServiceItem(@Body() serviceItemInfo: ServiceItem) {
+    async addProductToService(@Body() productInfo: ServiceItem) {
+        // console.log("Product info", productInfo.variants.map(e => 'separator  ' +e.images.toString()) ,  productInfo)
+
         var r = await Helper.runInTransaction(this.connection, async session => {
-            var result = await this.serviceService.createServiceItem(serviceItemInfo, session)
+            var result = await this.serviceService.createServiceItem(productInfo, session)
             return result;
         })
         return r
     }
 
+
     @Post("/review/add")
     @UseGuards(AuthGuard())
     async createReview(@Res() response: Response, @Body() reviewInfo: Review, @GetUser() user: User) {
         const { dateCreated, _id, ...rest } = reviewInfo
-
         var result = await Helper.runInTransaction(this.connection, async session => {
             var reviewResult = await this.serviceService.createReview(rest, user, session)
             if (reviewResult)
                 return true
             else return false
         })
-        return response.status(200).json(result)
+
+        var serviceOwner = await this.userService.getServiceProviderUserInfo(reviewInfo.service)
+        response.status(200).json(result)
+
+        // send notification for service provider about the review
+        var notificationInfo = new Notification({
+            title: "Your service got new review",
+            description: `Someone reviewed your service ${reviewInfo.serviceName}. Click here to see the review`,
+            notificationType: NotificationType.REVIEW.toString(),
+            recepient: serviceOwner._id,
+            service: reviewInfo.service,
+            serviceName: reviewInfo.serviceName,
+
+        })
+        var notificationImage = ""
+        var notificationSendResult = await this.notificationService.sendNotification(notificationInfo, serviceOwner, notificationImage)
     }
 
 
-    // PUT request ----------------------------------------------------------------------------------
-
+    // PUT request ------------------ ----------------------------------------------------------------
+    
     @Put("/edit")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async editService(@Query("id") serviceId: String, @Body() serviceInfo: Service) {
+    async editService(@Query("id") serviceId: String, @Body() serviceInfo: Service, @Res() response: Response) {
+
+        console.log("Edit service info", serviceInfo, serviceInfo.contact.links)
         var r = await Helper.runInTransaction(this.connection, async session => {
             var result = await this.serviceService.editService(serviceId, serviceInfo, session)
             return result;
         })
-        return r
+        return response.status(200).json(r);
     }
 
     @Put("/product/edit")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async editServiceItem(@Query("id") serviceITemId: String, @Body() serviceItemInfo: ServiceItem) {
-        var r = await Helper.runInTransaction(this.connection, async session => {
+    async editServiceItem(@Query("id") serviceITemId: String, @Body() serviceItemInfo: ServiceItem, @Res() response: Response) {
+        var editResult = await Helper.runInTransaction(this.connection, async session => {
             var result = await this.serviceService.editServiceItem(serviceITemId, serviceItemInfo, session)
             return result;
         })
-        return r
+        response.status(200).json(editResult)
     }
 
     @Put("/status/update")
@@ -147,7 +172,7 @@ export class ServiceController {
             var reviewResult = await this.serviceService.updateReview(reviewId, reviewInfo, user._id, session)
             return reviewResult;
         })
-        console.log("up result" , result)
+        console.log("up result", result)
         return response.status(200).json(result)
     }
 

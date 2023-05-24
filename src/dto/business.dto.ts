@@ -26,5 +26,5 @@ export class BusinessDTO{
 
 export class BusinessCreateDTO{
     business : Business
-    subscriptionLevel : number
+    subscriptionLevel? : number
 }

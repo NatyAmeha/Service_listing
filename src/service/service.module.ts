@@ -12,6 +12,7 @@ import { Helper } from 'src/utils/helper';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { ServiceController } from './service.controller';
 import { ServiceService } from './service.service';
+import { MessageModule } from 'src/messaging/message.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ServiceService } from './service.service';
     WalletModule,
     BusinessModule,
     ReviewModule,
+    MessageModule,
     UserModule
   ],
   controllers: [ServiceController],

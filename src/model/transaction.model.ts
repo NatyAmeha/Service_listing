@@ -30,7 +30,7 @@ export class Transaction{
 export type TransactionDocument = HydratedDocument<Transaction>
 
 export const transactionSchema = new Schema<Transaction>({
-    amount : {type : Number , required : true , validate : (value : Number) => value > 0},
+    amount : {type : Number , required : true , validate : (value : number) => value > 0},
     source : {type : String},
     sourceName : {type : String }, 
     recepient : {type : String },  // it can be null for instance when user made a purchase

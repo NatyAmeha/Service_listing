@@ -34,7 +34,8 @@ import { NotificationService } from './notification.service';
     MessageService, NotificationService,
     FirebaseNotificationSender.INJECT_NAME,
     NotificationRepository.injectName,
-    NotificationService
+    NotificationService,
+    MessageService
   ]
 })
 export class MessageModule { }

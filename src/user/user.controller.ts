@@ -19,7 +19,7 @@ export class UserController {
     constructor(private notificationService: NotificationService,
         private userService: UserService,
         private walletService: WalletService,
-        private reviewService : ReviewService
+        private reviewService: ReviewService
     ) { }
 
     // @Get("/notifications")
@@ -52,6 +52,13 @@ export class UserController {
         return result
     }
 
+    @Get("/mybusinesses")
+    @UseGuards(AuthGuard())
+    async getUserOwnedBusinesss(@GetUser() user: User) {
+        var result = await this.userService.getUserOwnedBusinesses(user._id)
+        return result
+    }
+
     @Get("/notifications")
     @UseGuards(AuthGuard())
     async getUserNotifications(@GetUser() user: User) {
@@ -74,9 +81,9 @@ export class UserController {
         var transactionResult = await this.walletService.getWalletTransaaction(user._id)
         var pendingCashoutReqeust = await this.walletService.getPendingCashoutRequest(user._id)
         var walletBalance = await this.walletService.getWalletBalance(user._id)
-        
+
         var result = new WalletDTO({
-            balance : walletBalance,
+            balance: walletBalance,
             transactions: transactionResult,
             pendingCashoutRequest: pendingCashoutReqeust
         })
@@ -86,16 +93,16 @@ export class UserController {
     @Get("/wallet/transaction/:id")
     @UseGuards(AuthGuard())
     async getTransactionDetail(@Param("id") transactionId: String, @GetUser() user: User) {
-       
+
         var result = await this.walletService.getTransactionDetail(transactionId)
-        if (result.service) {
-            var serviceReview = await this.reviewService.getHighlevelReviewInfo({service : result.service.service._id})
-            result.service = {...result.service , reviewInfo : serviceReview}
-            
+        if (result.service.service) {
+            var serviceReview = await this.reviewService.getHighlevelReviewInfo({ service: result.service.service._id })
+            result.service = { ...result.service, reviewInfo: serviceReview }
+
             var review = await this.userService.getUserReviewForService(user._id, result.service.service._id)
             result.review = review
         }
-       
+
         return result;
 
     }

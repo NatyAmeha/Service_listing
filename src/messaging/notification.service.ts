@@ -17,11 +17,11 @@ export class NotificationService {
         var notificationResult = await this.notificationRepo.find({ recepient: userId })
         return notificationResult;
     }
-
+ 
     async updateNotificationSeenStatus(notificationId: String): Promise<boolean> {
         var notificationUpdateResult = await this.notificationRepo.updateWithFilter({ _id: notificationId }, { seen: true })
         return notificationUpdateResult;
-    }
+    } 
 
     async sendNotification(notificationInfo: Notification, userInfo: User, image: String): Promise<boolean> {
         var notificationCreateResult = await this.notificationRepo.add(notificationInfo)
@@ -30,12 +30,12 @@ export class NotificationService {
                 title: notificationInfo.title?.toString(),
                 body: `${notificationInfo.description}`,
                 imageUrl:  image?.toString(),
-                type: notificationInfo.notificationType.toString()
+                type: notificationInfo.notificationType.toString(),
+                destinationId : notificationInfo.business.toString() ?? notificationInfo.service.toString()
             }
         }
         if (userInfo.fcmToken.length > 0) {
             try {
-
                 var fcmResult = await this.fcmSender.send<MessagingPayload>(fcmMessagePayload, userInfo.fcmToken as string[])
                 console.log("fcm send result" , fcmResult)
             }catch(ex){

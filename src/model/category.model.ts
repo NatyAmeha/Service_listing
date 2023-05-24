@@ -5,6 +5,7 @@ export class Category{
     name? : String
     subCategories? : String[]
     image? : String
+    icon? : String
 
     static ModelName = "Category"
 
@@ -18,5 +19,6 @@ export type CategoryDocument = HydratedDocument<Category>
 export var categorySchema = new Schema<Category>({
    name : {type : String ,required : true , unique : true},
    subCategories : {type : [String]}, 
-   image : {type : String}
+   image : {type : String}, 
+   icon : {type : String}
 })

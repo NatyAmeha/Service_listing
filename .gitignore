@@ -84,5 +84,5 @@ yarn-error.log
 /packages/graphql
 /benchmarks/memory
 build/config\.gypi
-komkum-566ac-firebase-adminsdk-u3ghc-557070864c.json
-/package.json
+
+.env*

@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseBoolPipe, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
-import { Response } from 'express';
+import { Response, response } from 'express';
 import { result } from 'lodash';
 import { Connection } from 'mongoose';
 import { AuthNotRequired } from 'src/auth/auth.middleware';
@@ -11,49 +11,63 @@ import { BusinessCreateDTO, BusinessDTO } from 'src/dto/business.dto';
 import { Business } from 'src/model/business.model';
 import { User } from 'src/model/user.model';
 import { ReviewService } from 'src/review/review.service';
-import { AccountType } from 'src/utils/constants';
+import { AccountType, NotificationType } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
 import { BusinessService } from './business.service';
+import { AuthService } from 'src/auth/auth.service';
+import { NotificationService } from 'src/messaging/notification.service';
+import { UserService } from 'src/user/user.service';
+import { Notification } from 'src/model/notification.model';
+import { MessageService } from 'src/messaging/message.service';
 
 @Controller('business')
 export class BusinessController {
 
     constructor(
         private businesService: BusinessService,
+        private authService: AuthService,
+        private userService: UserService,
+        private notificationService: NotificationService,
+        private messagingService : MessageService,
         @InjectConnection() private connection: Connection
     ) {
 
     }
 
     @Post("/create")
-    @Role(AccountType.SERVICE_PROVIDER)
-    @UseGuards(AuthGuard(), RoleGuard)
-    async createBusiness(@Body() businessInfo: BusinessCreateDTO, @GetUser() user?: User) {
+    // @Role(AccountType.SERVICE_PROVIDER, AccountType.ADMIN)
+    @UseGuards(AuthGuard())
+    async createBusiness(@Body() businessInfo: BusinessCreateDTO, @GetUser() user: User, @Res() response : Response) {
+        console.log("business info", businessInfo)
         var result = await Helper.runInTransaction<Business>(this.connection, async session => {
+            var upgradeAccountResult = await this.authService.upgradeAccount(user, AccountType.SERVICE_PROVIDER, session)
             var businessResult = await this.businesService.createBusiness(businessInfo, user?._id, session)
             return businessResult
         })
+        response.status(201).json(result)
+        // send sms notification
+        this.messagingService.sendSmsMessage("New business has registered" , "+251915844494")
 
-        return result
     }
 
 
     // Get requests ------------------------------------ -----------------------------------------
 
     @Get("/reviews")
-    async getBusinessReviewInfo(@Query("id") business: String, @Query("star" , ParseIntPipe) star?: number,
+    async getBusinessReviewInfo(@Query("id") business: String, @Query("star", ParseIntPipe) star?: number,
         @Query("page", ParseIntPipe) page?: number, @Query("size", ParseIntPipe) size?: number) {
-        
-        var reviewResult = await this.businesService.getBusinessReviewDetails(business, null, page, size , star)
+
+        var reviewResult = await this.businesService.getBusinessReviewDetails(business, null, page, size, star)
         return reviewResult;
     }
 
     @Get("/:id")
     @UseGuards(AuthNotRequired)
-    async getBusinessDetails(@Param("id") businessId: String, @GetUser() user?: User) {
+    async getBusinessDetails(@Param("id") businessId: String, @Res() res : Response,  @GetUser() user?: User) {
         console.log("business id", businessId)
         var businessResult = await this.businesService.getBusinessDetails(businessId, user)
-        return businessResult
+        res.status(200).json(businessResult)
+       
 
     }
 
@@ -69,9 +83,36 @@ export class BusinessController {
     @Put("/edit")
     @Role(AccountType.SERVICE_PROVIDER)
     @UseGuards(AuthGuard(), RoleGuard)
-    async editBusinessInfo(@Query("id") businessId: String, @Body() businessInfo: Business) {
+    async editBusinessInfo(@Query("id") businessId: String, @Body() businessInfo: Business, @Res() response: Response) {
         var updateResult = await this.businesService.editBusiness(businessId, businessInfo)
-        return updateResult
+        return response.status(200).json(updateResult)
+    }
+
+    @Put("/verification")
+    @Role(AccountType.ADMIN)
+    @UseGuards(AuthGuard(), RoleGuard)
+    async update(@Query("id") businessId: String, @Query("status", ParseBoolPipe) verificationStatus: boolean, @Res() response: Response) {
+        var updateResult = await this.businesService.updateBusinessVerificationStatus(businessId, verificationStatus)
+        response.status(200).json(updateResult)
+        
+        if (updateResult) {
+            if (verificationStatus) {
+                var businessInfo = await this.businesService.getBusinessWithLimitedInfo(businessId, "creator,images")
+                var businessOwnerResult = await this.userService.getUserInfo(businessInfo.creator)
+                var notificationInfo = new Notification({
+                    title: "Your business has been approved",
+                    description: `${businessInfo.name} has been approved. Now users can see and interact with your business.`,
+                    business: businessId,
+                    
+                    notificationType: NotificationType.BUSINESS.toString(),
+                    recepient: businessOwnerResult.user._id,
+ 
+                })
+                var businessImage = businessInfo.images[0]
+                var notificationSendResult = await this.notificationService.sendNotification(notificationInfo, businessOwnerResult.user, businessImage)
+            }
+        } 
+
     }
 
     @Put("/like")

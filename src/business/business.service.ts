@@ -40,13 +40,12 @@ export class BusinessService {
 
         if (businessCreateInfo.subscriptionLevel == SubscriptionLevel.PREMIUM)
             businessCreateInfo.business.verified = true
-        else businessCreateInfo.business.verified = false;
+        else businessCreateInfo.business.verified = false;  
         //save business info
-
-        var businessResult = await this.businessRepo.add(businessCreateInfo.business)
+        const {_id , ...restBusinessInfo} = businessCreateInfo.business
+        var businessResult = await this.businessRepo.add(restBusinessInfo)
 
         // update user info
-
         var userUpdateREsult = await this.userRepo.updateWithFilter({ _id: userId }, { $push: { userBusinesses: businessResult._id } })
         return businessResult
 
@@ -67,6 +66,17 @@ export class BusinessService {
         // update business info
         var updateResult = await this.businessRepo.update({ _id: businessId }, newInfo)
         return updateResult
+    }
+
+    async updateBusinessVerificationStatus(businessId: String, status : boolean): Promise<Boolean> {
+        // update business info
+        var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId },{verified : status})
+        return updateResult
+    }
+
+    async getBusinessWithLimitedInfo(businessId : String , selectedFields : String) : Promise<Business>{
+        var businessInfo = await this.businessRepo.get(businessId, ["services", "coupons", "services.coupons"] , selectedFields)
+        return businessInfo
     }
 
     async getBusinessDetails(businessId: String, user?: User): Promise<BusinessDTO> {
@@ -95,7 +105,7 @@ export class BusinessService {
 
         //get trending products
         var products = await this.serviceItemRepo.findandSort({ business: businessId }, { viewCount: -1 }, 10, 1)
-        var productDTOs = products.map(product => new ProductDTO({ serviceItem: product }))
+        var productDTOs = products.map(product => new ProductDTO({ serviceItem: product , priceRange : Helper.calculateProductPrice(product) }))
         businessDTOResult.trendingProducts = productDTOs
 
         // check business is in user's favorite

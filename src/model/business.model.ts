@@ -28,10 +28,10 @@ export class Business {
     images?: String[]
     addresses?: Address[]
     contact?: Contact
-    dateCreated?: Date
+    dateCreated?: Date 
     creator?: String
-    reviews?: String[] | Review[]
-    subscription?: BusinessSubscription
+    reviews?: String[] | Review[] 
+    subscription?: BusinessSubscription = {}
 
     static ModelName = "Business"
 
@@ -41,14 +41,14 @@ export class Business {
 }
 
 export var businessSchema: Schema = new Schema<Business>({
-    name: { type: String, required: true },
-    description: { type: String, required: true },
+    name: { type: String, required: true , trim : true },
+    description: { type: String, required: true , trim : true },
     category: { type: [String], required: true, uppercase: true },
     likeCount: { type: Number, default: 0 },
     verified: { type: Boolean, default: false },
     featured: { type: Boolean, default: false },
     services: { type: [Types.ObjectId], ref: "Service", default: [] },
-    servicesName: { type: [String], required: true },
+    servicesName: { type: [String] },
     coupons: { type: [Types.ObjectId], ref: "Coupon", default: [] },
     images: { type: [String], required: true },
     dateCreated: { type: Date, default: Date.now() },
@@ -56,9 +56,9 @@ export var businessSchema: Schema = new Schema<Business>({
     reviews: { type: [Types.ObjectId], ref: "Review", default: [] },
     contact: {
         type: {
-            email: { type: String },
+            email: { type: String , trim : true },
             phoneNumber: { type: [String] },
-            links: { type: Map, of: String }
+            links: { type: Map, of: String  }
         }
     },
     subscription: {
@@ -67,7 +67,7 @@ export var businessSchema: Schema = new Schema<Business>({
             startDate: { type: Date, default: Date.now() },
             expireDate: { type: Date, required: true }
         },
-        required : true
+        required : false
     },
     addresses: [{
         type: {
@@ -76,7 +76,8 @@ export var businessSchema: Schema = new Schema<Business>({
                 coordinates: { type: [Number], required: false }
             },
             phoneNumber: { type: String },
-            localAddress: { type: String }
+            localAddress: { type: String , trim : true },
+            mapLink : {type : String}
         },
         default: []
     }],

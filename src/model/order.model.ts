@@ -25,6 +25,7 @@ export class Order {
     dateCreated?: Date
     address?: Address
     contact?: Contact
+    discount?: number
 
     static ModelName = "Order"
 
@@ -32,16 +33,17 @@ export class Order {
 
 export class OrderItem {
     _id: String
+    name : String
     serviceItem?: String | ServiceItem
     productInfo: ServiceItem
     qty?: number
     price?: number
     coupon?: String
-    selectedDates? : Date[]
+    selectedDates?: Date[]
     business?: String | Business
     service?: String | Service
     image?: String
-    deliveryStatus? : String  
+    deliveryStatus?: String
 
     constructor(data: Partial<OrderItem>) {
         Object.assign(this, data);
@@ -61,15 +63,16 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
     business: { type: Types.ObjectId, ref: "Business" },
     items: [{
         type: {
+            name : {type : String , trim : true},
             serviceItem: { type: Types.ObjectId, ref: "ServiceItem" },
             qty: { type: Number },
             price: { type: Number },
             coupon: { type: Types.ObjectId },
-            selectedDates : {type : [Date]},
+            selectedDates: { type: [Date] },
             business: { type: Types.ObjectId, ref: "Business", required: true },
             service: { type: Types.ObjectId, ref: "Service", required: true },
             image: { type: String, required: true },
-            deliveryStatus : {type : String , default : OrderStatus.PENDING},
+            deliveryStatus: { type: String, default: OrderStatus.PENDING.toString() },
         },
         default: []
     }],
@@ -80,14 +83,15 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
     moreInfo: { type: Map, of: String },
     type: { type: String, enum: OrderType, required: true },
     dateCreated: { type: Date, default: Date.now() },
-    
+    discount: { type: Number },
+
     address: {
         type: {
             location: {
                 type: { type: String, enum: ["Point"], required: false },
                 coordinates: { type: [Number], required: false }
             },
-
+            mapLink: { type: String },
             localAddress: { type: String }
         },
     },

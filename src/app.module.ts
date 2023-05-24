@@ -17,15 +17,18 @@ import { ReviewModule } from './review/review.module';
 import { MessageModule } from './messaging/message.module';
 import { WalletModule } from './wallet/wallet.module';
 import { AdminModule } from './admin/admin.module';
+import { MulterModule } from '@nestjs/platform-express/multer';
+import { memoryStorage } from 'multer';
 
 @Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: [`.env.stage.${process.env.STAGE}`],
-      // validationSchema: configSchema, 
+    // validationSchema: configSchema, 
       isGlobal: true,
     }),
+    
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

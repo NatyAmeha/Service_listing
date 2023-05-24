@@ -35,8 +35,6 @@ export class MongodbRepo<T extends Document> implements IRepository<T>{
             console.log(ex)
             throw new InternalServerErrorException(null, ex.toString())
         }
-
-
     }
     async find(predicate: Object, populateString?: any, limit: number = 100, page: number = 1, incexc?: String): Promise<T[]> {
         try {

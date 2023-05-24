@@ -1,6 +1,6 @@
 export const COMMISSION_PERCENTAGE = 5
 export const AMOUNT_LEFT_AFTER_CASHOUT = 100
-export const ELIGABLE_AMOUNT_FOR_CASH_OUT = 150
+export const ELIGABLE_AMOUNT_FOR_CASH_OUT = 300
 export const DEFAULT_DELIVERY_PRICE = 100
 
 
@@ -9,13 +9,13 @@ export enum AccountType {
     ADMIN = "ADMIN",
     SERVICE_PROVIDER = "SERVICE_PROVIDER"
 }
-
+    
 export enum OrderStatus {
     PENDING = "PENDING", COMPLETED = "COMPLETED"
 }
 
 export enum OrderType {
-    PURCHASE = "PURCHASE", BOOKING = "BOOKING"
+    PURCHASE = "PURCHASE", BOOKING = "BOOKING" 
 }
 
 export enum ServiceItemType{
@@ -27,7 +27,7 @@ export enum CouponType {
 }
 
 export enum NotificationType {
-    ORDER = "ORDER", BUSINESS = "BUSINESS", SERVICE = "SERVICE", REWARD = "REWARD", COUPON = "COUPON"
+    ORDER = "ORDER", BUSINESS = "BUSINESS", SERVICE = "SERVICE", REWARD = "REWARD", COUPON = "COUPON", REVIEW = "REVIEW"
 }
 
 export enum SortOption {

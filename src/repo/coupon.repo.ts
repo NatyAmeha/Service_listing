@@ -11,6 +11,7 @@ import { Service } from "src/model/service.model"
 import { ServiceItem } from "src/model/service_item.model"
 import { MongodbRepo } from "./mongodb.repo"
 import { IRepository } from "./repo.interface"
+import { Helper } from "src/utils/helper"
 
 export interface ICouponRepo extends IRepository<Coupon> {
     getActiveCoupons(endData: Date, page: number, pageSize: number, id?: String[]): Promise<CouponDTO[]>
@@ -71,7 +72,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser
-                var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({serviceItem : item , priceRange : Helper.calculateProductPrice(item)}))
 
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService
@@ -102,7 +103,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             const { service, business, ...remaining } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser
-                var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({ serviceItem: item }))
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item , priceRange : Helper.calculateProductPrice(item) }))
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService,
                 })
@@ -134,7 +135,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser
-                var productsInsideService = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({serviceItem : item , priceRange : Helper.calculateProductPrice(item)}))
 
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService

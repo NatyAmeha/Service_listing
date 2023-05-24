@@ -65,13 +65,25 @@ export class BrowseService {
             var reviewInfo = await this.reviewService.getHighlevelReviewInfo({ service: service._id })
             const { coupons, serviceItems, ...rest } = service
             var activeCoupons = this.helper.filterActiveCoupons(coupons as Coupon[])
-            var productsInsideService =  (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item})) 
-            return new ServiceDTO({
+
+            var serviceResult = new ServiceDTO({
                 service: rest, coupons: activeCoupons,
                 reviewInfo: reviewInfo,
                 serviceItems: productsInsideService
             })
+
+            if (serviceItems?.length > 0) {
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item, priceRange: Helper.calculateProductPrice(item) }))
+                serviceResult.serviceItems = productsInsideService
+            }
+
+            return serviceResult
         }))
+
+
+        // "https://firebasestorage.googleapis.com/v0/b/komkum-566ac.appspot.com/o/gast%20gym.jpg?alt=media&token=5b37195c-70ab-4c6d-ae29-786af9da06a3",
+        // "https://firebasestorage.googleapis.com/v0/b/komkum-566ac.appspot.com/o/gast_gym_2.jpg?alt=media&token=7202facc-6cd8-4f33-9730-cbd32138f796"
+
 
         var browseResult = new BrowseDTO({
             coupons: couponResult, featuredBusinesses: featuredBusinessDTO,
@@ -82,16 +94,23 @@ export class BrowseService {
             var serviceIds = coupon.services.map(service => service.service._id)
             services.push(...serviceIds)
         })
+        trendingServiceResult.forEach(service => services.push(service.service._id))
+
         if (services.length > 0) {
             var serviceItemResult = await this.serviceItemRepo.getServiceItems(services, { "featured": -1 })
-            var productResults = serviceItemResult.map(item =>{
-                const {business , ...rest} = item
-                
+            var productResults = await Promise.all(serviceItemResult.map(async item => {
+                const { business, ...rest } = item
+                var serviceReviewInfo = await this.reviewService.getHighlevelReviewInfo({ service: item.service })
+                var serviceInfo = new ServiceDTO({ reviewInfo: serviceReviewInfo })
+
                 var isProductVerified = Helper.isBusinessVerfied(business as Business)
-                return new ProductDTO({serviceItem : rest , businessInfo : business as Business , verified : isProductVerified})
-                
-            })
-            browseResult.products = productResults
+                return new ProductDTO({
+                    serviceItem: rest, serviceInfo: serviceInfo, businessInfo: business as Business, verified: isProductVerified,
+                    priceRange: Helper.calculateProductPrice(rest)
+                })
+
+            }))
+            browseResult.products = productResults.filter(product => product.verified == true)
         }
         return browseResult
     }
@@ -101,10 +120,10 @@ export class BrowseService {
         return result;
     }
 
-    async search(query: String , sortBy? : String): Promise<SearchDTO> {
+    async search(query: String, sortBy?: String): Promise<SearchDTO> {
         this.productSearchHandler.setNextHandler(this.serviceSearchHandler)
         this.serviceSearchHandler.setNextHandler(this.businessSearchHandler)
-        var searchResult = await this.productSearchHandler.search(query.toString(), {} , sortBy , undefined , null)
+        var searchResult = await this.productSearchHandler.search(query.toString(), {}, sortBy, undefined, null)
 
         return searchResult
     }
@@ -142,7 +161,7 @@ export class BrowseService {
         var availableCoupons: Coupon[] = [];
         var businessesInfo: BusinessDTO[] = []
 
-        var businessesbyCategory = await this.businessRepo.find({ category: categoryName.toLocaleUpperCase() }, ["coupons"])
+        var businessesbyCategory = await this.businessRepo.find({ category: categoryName , $caseSensitive: false }, ["coupons"])
 
         businessesInfo = await Promise.all(businessesbyCategory.map(async business => {
             const { coupons, ...rest } = business

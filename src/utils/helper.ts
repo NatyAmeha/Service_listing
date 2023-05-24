@@ -13,21 +13,21 @@ export interface IHelper {
     generateCouponCodes(amount: number);
     generateCode(length: number, generatedCodes: String[], dictionary?: String)
     calculateRating(reviews: Review[], keyPoints?: String[]): { rating: number, count: number }
-    getReviewsByStarAmount(reviews : Review[], starAmount :number) :Review[]// 5 star, 4 star, 3star
+    getReviewsByStarAmount(reviews: Review[], starAmount: number): Review[]// 5 star, 4 star, 3star
     filterActiveCoupons(couponsInfo: Coupon[]): CouponDTO[]
-    calculateServicePriceRange(products : ServiceItem[]) : {min : number , max : number}
+    calculateServicePriceRange(products: ServiceItem[], defaultMinPrice?: number, defaultMaxPrice?: number): { min: number, max: number }
 }
 
 @Injectable()
 export class Helper implements IHelper {
-    
-    
-    getReviewsByStarAmount(reviews : Review[], starAmount :number):  Review[] {
-       var reviews =   _.filter(reviews, review => {
+
+
+    getReviewsByStarAmount(reviews: Review[], starAmount: number): Review[] {
+        var reviews = _.filter(reviews, review => {
             var keyPointRatingSum = _.sum(review.keyPoints.map(key => key.rating))
             var averageRating = _.divide(keyPointRatingSum, review.keyPoints.length)
-           
-            return averageRating < starAmount +1 && averageRating >= starAmount
+
+            return averageRating < starAmount + 1 && averageRating >= starAmount
         })
         return reviews
     }
@@ -53,13 +53,13 @@ export class Helper implements IHelper {
             session.startTransaction();
             var result = await operation(session)
             await session.commitTransaction()
-
             return result;
 
         } catch (ex) {
             console.log("transaction error", ex.message)
-            // await session.abortTransaction()
-            await session.endSession()
+            // await session.endSession()
+            await session.abortTransaction()
+
             throw new InternalServerErrorException("", "Transaction error occurred")
         }
     }
@@ -108,7 +108,7 @@ export class Helper implements IHelper {
         var finalRating = _.divide(overallRating, reviewCount)
         finalRating = isNaN(finalRating) ? 0.0 : finalRating
         return {
-            rating: finalRating,
+            rating: parseFloat(finalRating.toFixed(1)),
             count: reviewCount
         };
 
@@ -118,26 +118,61 @@ export class Helper implements IHelper {
         var couponsDTOResult = coupons
             .filter(coupon => ((coupon.totalUsed < coupon.maxAmount) && coupon.isActive == true && (coupon.endDate > new Date())))
             .map(cp => {
-                const {  business , couponCodes, ...rest } = cp
-                
+                const { business, couponCodes, ...rest } = cp
+
                 return new CouponDTO({ couponInfo: rest })
             })
-        return _.orderBy(couponsDTOResult , coupon => coupon.couponInfo.discountAmount , "desc")
+        return _.orderBy(couponsDTOResult, coupon => coupon.couponInfo.discountAmount, "desc")
     }
 
     static isBusinessVerfied(businessInfo: Business): boolean {
-        var currentDate= new Date()
-        return (currentDate <= businessInfo.subscription?.expireDate) == true
+        // if (businessInfo?.subscription != undefined) {
+        //     var currentDate = new Date()
+        //     return (currentDate <= businessInfo.subscription?.expireDate) == true
+        // }
+        return businessInfo.verified == true
 
     }
 
-    calculateServicePriceRange(products: ServiceItem[]): { min: number; max: number; } {
-        var productPrices : number[] = []
-        products.forEach(product =>{
+    static calculateProductPrice(productInfo?: ServiceItem): { min: number, max: number } {
+        var allPrices: number[] = [];
+        if (productInfo != null) {
+            if (productInfo?.variants != undefined && productInfo.variants?.length > 0) {
+                var vPrices = productInfo.variants.forEach(variant => allPrices.push(variant.fixedPrice))
+
+            }
+            else {
+                if (productInfo?.fixedPrice && productInfo.fixedPrice != null) {
+                    allPrices.push(productInfo.fixedPrice)
+                }
+                else {
+                    allPrices.push(...[productInfo.minPrice, productInfo.maxPrice])
+                }
+            }
+            if (allPrices.length == 1) {
+                return { min: allPrices[0], max: null }
+            }
+            else {
+                var sortedPrice = _.orderBy(_.filter(allPrices, price => price > 10), price => price, 'asc')
+                console.log("result", sortedPrice)
+                return { min: sortedPrice[0], max: sortedPrice[sortedPrice.length - 1] }
+            }
+        }
+        else {
+            return null
+        }
+    }
+
+    calculateServicePriceRange(products: ServiceItem[], defaultMinPrice?: number, defaultMaxPrice?: number): { min: number; max: number; } {
+        var productPrices: number[] = []
+        products.forEach(product => {
             productPrices.push(product.fixedPrice)
         })
-       var sortedPrices =  _.sortBy(productPrices)
-       console.log("price comparator" , productPrices)
-       return {min : sortedPrices[0] , max : sortedPrices[sortedPrices.length -1]}
+        var sortedPrices = _.sortBy(productPrices)
+        console.log("price comparator", productPrices)
+        var result = { min: sortedPrices[0], max: sortedPrices[sortedPrices.length - 1] }
+        if (result.min == null) result.min = defaultMinPrice
+        if (result.max = null) result.max = defaultMaxPrice
+        return result
     }
 }

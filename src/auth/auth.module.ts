@@ -16,7 +16,7 @@ import { RoleGuard } from './role.guard';
   imports: [
     WalletModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({ secret: "SUPER_SECRET", signOptions: { expiresIn: 24*3600 } }),
+    JwtModule.register({ secret: "SUPER_SECRET", signOptions: { expiresIn: 30 * 24 * 3600 } }),
     MongooseModule.forFeature([{ name: Constants.USER_MODEL, schema: userSchema }])],
   controllers: [AuthController],
 
@@ -26,14 +26,15 @@ import { RoleGuard } from './role.guard';
       useClass: UserRepository
     },
     {
-       provide : JwtStrategyService.JWT_STRATEGY_INJECT,
-       useClass : JwtStrategyService
+      provide: JwtStrategyService.JWT_STRATEGY_INJECT,
+      useClass: JwtStrategyService
     },
-    AuthService,RoleGuard,AuthNotRequired
+    AuthService, RoleGuard, AuthNotRequired
   ],
-  exports : [
+  exports: [
     MongooseModule,
-    
-    PassportModule , JwtStrategyService.JWT_STRATEGY_INJECT , UserRepository.injectName , RoleGuard , AuthNotRequired]
+    AuthService,
+    PassportModule, JwtStrategyService.JWT_STRATEGY_INJECT,
+    UserRepository.injectName, RoleGuard, AuthNotRequired,]
 })
 export class AuthModule { }

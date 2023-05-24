@@ -19,7 +19,7 @@ export class OrderDTO{
         Object.assign(this, data); 
     }
 }
-
+ 
 export class OrderStatusDTO{
     status : String
     price? : number

@@ -6,5 +6,6 @@ export interface GeoSpacial{
 export class Address{
     _id? : String
     location? : GeoSpacial
+    mapLink? : String
     localAddress? : String
-}
+} 

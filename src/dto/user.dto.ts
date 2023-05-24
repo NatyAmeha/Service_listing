@@ -10,6 +10,7 @@ export class UserDTO{
     user? : User
     favoriteBusinesses? : BusinessDTO[]
     favoriteProducts? : ProductDTO[]
+    userBusinesses? : BusinessDTO[]
     orders? : OrderDTO[]
     walletBalance? : number
     constructor(data : Partial<UserDTO>){

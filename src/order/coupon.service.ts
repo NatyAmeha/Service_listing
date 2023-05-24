@@ -58,7 +58,7 @@ export class CouponService {
         const { service, business, ...rest } = result
         var serviceDTOResult = (service as Service[]).map(ser =>{
             const {serviceItems , ...rest} = ser;
-            var products = (serviceItems as ServiceItem[]).map(item => new ProductDTO({serviceItem : item}))
+            var products = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({serviceItem : item , priceRange : Helper.calculateProductPrice(item)}))
             return new ServiceDTO({ service: rest , serviceItems : products })
         })
         var couponsDtoResult = new CouponDTO({ couponInfo: rest, services: serviceDTOResult, business: business as Business })

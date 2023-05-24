@@ -22,16 +22,19 @@ export class ServiceItem {
     fixedPrice?: number
     minPrice?: number
     maxPrice?: number
+    priceAdjustment? : String
+    canOrder?: boolean
+    requireDate? : boolean  // control weather user must pick a date for booking or purchase
+    maxSelectedDate? : number
+    addPriceByDate : boolean
     maxAmount?: number
     likeCount?: number
     viewCount?: number
     featured?: Boolean
     callToAction?: String
     expireDate?: Date
-    canOrder?: boolean
     variants?: ServiceItemVariant[]
     dateCreated?: Date
-    requireDate? : boolean  // control weather user must pick a date for booking or purchase
 
     static ModelName = "ServiceItem"
 
@@ -41,8 +44,9 @@ export class ServiceItemVariant {
     images?: String[]
     moreInfo?: Map<String, String>
     fixedPrice?: number
-
 }
+
+
 
 export type ServiceItemDocument = HydratedDocument<ServiceItem>;
 
@@ -56,22 +60,16 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     serviceName: { type: String, required: true },
     business: { type: Types.ObjectId, required: true, ref: "Business" },
     businessName: { type: String, required: true },
-    category: { type: String , required : true },
+    category: { type: String  },
     tags: { type: [String] },
-    fixedPrice: { type: Number, required: true },
+    fixedPrice: { type: Number },
     minPrice: {
-        type: Number, required: function (): boolean {
-            const item = this as ServiceItem
-            console.log("fixed price", item.fixedPrice)
-            return item.fixedPrice == undefined;
-        }
+        type: Number, 
     },
     maxPrice: {
-        type: Number, required: function (): boolean {
-            const item = this as ServiceItem
-            return item.fixedPrice == undefined;
-        }
+        type: Number
     },
+    priceAdjustment : {type : String},
     maxAmount: { type: Number },
     likeCount: { type: Number, default: 0 },
     viewCount: { type: Number, default: 0 },
@@ -85,7 +83,7 @@ export var serviceItemSchema = new Schema<ServiceItem>({
         type: {
             images: { type: [String] },
             moreInfo: { type: Map, of: String },
-            fixedPrice: { type: Number, required: true },
+            fixedPrice: { type: Number, required: true }, 
 
 
         }

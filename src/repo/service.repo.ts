@@ -34,7 +34,7 @@ export class ServiceRepository extends MongodbRepo<ServiceDocument> implements I
         var result = await serviceResult.filter(service => service._id.toString() != serviceInfo._id.toString()).map(service => {
             const { business, coupons, serviceItems, reviews, ...rest } = service
             var couponsDTO = this.helper.filterActiveCoupons(coupons as Coupon[])
-            var servicePriceRange = this.helper.calculateServicePriceRange(serviceItems as ServiceItem[])
+            var servicePriceRange = this.helper.calculateServicePriceRange(serviceItems as ServiceItem[] , service.minPrice , service.maxPrice)
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
             return new ServiceDTO({
                 service: rest as Service, reviewInfo: new ReviewDTO({ rating: ratingInfo.rating, count: ratingInfo.count }),

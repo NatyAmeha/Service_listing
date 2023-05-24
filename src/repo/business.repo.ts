@@ -26,7 +26,7 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
     }
 
     async getRelatedBusiness(businessInfo: Business): Promise<BusinessDTO[]> {
-        var relatedBusinesses = await this.find({ category: businessInfo.category }, ["reviews"], 10) as Business[]
+        var relatedBusinesses = await this.find({ category: businessInfo.category , verified : true }, ["reviews"], 10) as Business[]
 
         var result = relatedBusinesses.filter(business => business._id.toString() != businessInfo._id.toString()).map(businessInfo => {
             const { reviews, ...rest } = businessInfo
@@ -37,7 +37,7 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
     }
 
     async getTopBusinessesByReview(): Promise<BusinessDTO[]> {
-        var businesses = await this.find({}, ["reviews"], 1000) as Business[]
+        var businesses = await this.find({verified : true}, ["reviews"], 1000) as Business[]
         var starterDate = new Date(Date.now())
         var currentDate = new Date(Date.now())
         starterDate.setDate(starterDate.getDate() - 30)
@@ -47,14 +47,14 @@ export class BusinessRepository extends MongodbRepo<BussinessDocument> implement
             //get reviews given by the last 30 days
 
             var thisMonthReview = _.filter(business.reviews as Review[], review => ((review.dateCreated > starterDate) && (review.dateCreated < currentDate)))
-            var rating = 0
+            var result : {rating : number , count : number};
             if (thisMonthReview.length > 0) {
-                rating = this.helper.calculateRating(thisMonthReview).rating
+                result = this.helper.calculateRating(thisMonthReview)
             }
             else {
-                rating = this.helper.calculateRating(reviews as Review[]).rating
+                result = this.helper.calculateRating(reviews as Review[])
             }
-            return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: rating, count: thisMonthReview.length }) })
+            return new BusinessDTO({ businessInfo: rest, reviewInfo: new ReviewDTO({ rating: result.rating, count: result.count }) })
         })
         var sortedBusinesses = _.orderBy(businessesInfo, business => business.reviewInfo.rating, "desc")
 

@@ -32,7 +32,7 @@ export type NotificationDocument = HydratedDocument<Notification>;
 
 export var notificationSchema = new Schema<Notification>({
     title: { type: String, required: true },
-    description: { type: String },
+    description: { type: String , trim : true },
     recepient: { type: Types.ObjectId, ref: "User" },
     notificationType: { type: String, required: true },
 	order: { type: Types.ObjectId, ref: "Order" },
@@ -40,7 +40,7 @@ export var notificationSchema = new Schema<Notification>({
     seen: { type: Boolean, default: false },
     business: { type: Types.ObjectId, ref: "Business" },
     service: { type: Types.ObjectId, ref: "Service" },
-    businessName: { type: String },
-    serviceName: { type: String }
+    businessName: { type: String , trim : true },
+    serviceName: { type: String , trim : true }
 })
 
