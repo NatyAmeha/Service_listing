@@ -85,5 +85,3 @@ yarn-error.log
 /benchmarks/memory
 build/config\.gypi
 
-/.env.stage.dev
-/.env.stage.prod
