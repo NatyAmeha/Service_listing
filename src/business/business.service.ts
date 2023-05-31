@@ -68,6 +68,14 @@ export class BusinessService {
         return updateResult
     }
 
+    async updateBusinessClaimStatus(businessId: String, claimStatus : Boolean): Promise<Boolean> {
+        // update business info
+        var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId }, {cliamed : claimStatus})
+        return updateResult
+    }
+
+
+
     async updateBusinessVerificationStatus(businessId: String, status : boolean): Promise<Boolean> {
         // update business info
         var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId },{verified : status})

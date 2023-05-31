@@ -21,7 +21,7 @@ export class Business {
     likeCount?: number
     verified?: Boolean
     featured?: Boolean
-
+    claimed? : Boolean
     services?: String[] | Service[]
     servicesName?: String[]
     coupons?: String[] | Coupon[]
@@ -46,6 +46,7 @@ export var businessSchema: Schema = new Schema<Business>({
     category: { type: [String], required: true, uppercase: true },
     likeCount: { type: Number, default: 0 },
     verified: { type: Boolean, default: false },
+    claimed: { type: Boolean, default: false },
     featured: { type: Boolean, default: false },
     services: { type: [Types.ObjectId], ref: "Service", default: [] },
     servicesName: { type: [String] },

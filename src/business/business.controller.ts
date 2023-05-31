@@ -88,6 +88,14 @@ export class BusinessController {
         return response.status(200).json(updateResult)
     }
 
+    @Put("/claim")
+    @Role(AccountType.SERVICE_PROVIDER)
+    @UseGuards(AuthGuard(), RoleGuard)
+    async claimBusinessInfo(@Query("id") businessId: String,  @Res() response: Response) {
+        var updateResult = await this.businesService.updateBusinessClaimStatus(businessId , true)
+        return response.status(200).json(updateResult)
+    }
+
     @Put("/verification")
     @Role(AccountType.ADMIN)
     @UseGuards(AuthGuard(), RoleGuard)
