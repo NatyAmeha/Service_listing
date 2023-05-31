@@ -32,9 +32,12 @@ import { memoryStorage } from 'multer';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<String>("DB_URL")
-      })
+      useFactory: async (configService: ConfigService) => {
+        console.log("db url" , process.env.STAGE , configService.get<String>("DB_URL"))
+        return ({
+          uri: configService.get<String>("DB_URL")
+        })
+      }
     })
     , AuthModule, BusinessModule, ServiceModule, OrderModule, BrowseModule, UserModule, ReviewModule, MessageModule, WalletModule, AdminModule,],
   controllers: [AppController],
