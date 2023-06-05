@@ -1,7 +1,7 @@
 import { IMessaging, INotification } from "./messaging.interface";
 import * as firebaseAdmin from "firebase-admin"
 import { MessagingPayload } from "firebase-admin/lib/messaging/messaging-api";
-var firebaseServiceAccount = require("../../komkum-566ac-firebase-adminsdk-u3ghc-557070864c.json")
+var firebaseServiceAccount = require("../../melegna-2f6fc-firebase-adminsdk-2y9pb-01a094a4d7.json")
 import * as _ from "lodash"
 
 
@@ -16,7 +16,7 @@ export class FirebaseNotificationSender implements IMessaging, INotification {
     initFcm() {
         firebaseAdmin.initializeApp({
             credential: firebaseAdmin.credential.cert(firebaseServiceAccount),
-            databaseURL: "https://komkum.firebaseio.com"
+            databaseURL: "https://melegna.firebaseio.com"
         });
     }
 
