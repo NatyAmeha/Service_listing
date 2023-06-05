@@ -5,11 +5,11 @@
 
 # komkum-566ac-firebase-adminsdk-u3ghc-557070864c.json
 # melegna-2f6fc-firebase-adminsdk-2y9pb-01a094a4d7.json
-komkum_prod*
-komkum_alpha*
-komkum_beta*
+komkum_prod_*
+komkum_alpha_*
+komkum_beta_*
 melegna_prod*
-komkum_
+komkum_*
 
 
 # Logs
