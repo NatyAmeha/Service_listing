@@ -1,6 +1,4 @@
 runtime: nodejs18
 
-env_variable:
+env_variables:
   STAGE: "dev"
-
-service: service1
