@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res, Inject } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res, Inject, ParseArrayPipe } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Response, response } from 'express';
@@ -55,19 +55,28 @@ export class ServiceController {
         var serviceItemResult = await this.serviceService.getServiceItemDetails(itemId, user)
         return serviceItemResult
     }
+    @Get("/find")
+    async getServicesById(@Query("ids" , new ParseArrayPipe({ items: String, separator: ',' })) ids : String[]){
+        var services = await this.serviceService.getServicesById(ids)
+        return services;
+    }
 
     @Get("/:id")
     async getServiceDetails(@Param("id") businessId: String) {
         var serviceResult = await this.serviceService.getServiceDetails(businessId)
         return serviceResult
-
     }
+
+    
 
     @Get("/")
     async getServices(@Query("query") query?: String, @Query("page") page?: number, @Query("size") size?: number) {
         var servicesResult = await this.serviceService.getServices(query, page, size)
         return servicesResult
     }
+
+
+    
 
     // POST request -------------------------------------------------------------------------
 

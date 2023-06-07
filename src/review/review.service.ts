@@ -31,7 +31,7 @@ export class ReviewService {
     }
 
     async getHighlevelReviewInfo(predicate: any, keyPoints?: String[],
-        page: number = 1, limit: number = 1000, divideByStarNumber: boolean = false, star: number = -1): Promise<ReviewDTO> {
+        page: number = 1, limit: number = 1000, divideByStarNumber: boolean = false, star: number = -1, includeReview : boolean = true): Promise<ReviewDTO> {
         var rating = 0.0
         var keyReviewPOint: String[] = []
         var ratingByKey: KeyReview[] = []
@@ -74,8 +74,11 @@ export class ReviewService {
             rating: rating,
             fiveStar: fiveStar, fourStar: fourStar, threeStar: threeStar, twoStar: twoStar, oneStar: oneStar,
 
-            reviews: _.take(selectedReviewList, limit), keyPoint: ratingByKey, count: reviews.length
+              keyPoint: ratingByKey, count: reviews.length
         })
+        if(includeReview){
+            reviewDTOResult.reviews = _.take(selectedReviewList, limit)
+        }
         return reviewDTOResult
     }
 

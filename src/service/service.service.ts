@@ -181,7 +181,7 @@ export class ServiceService {
             var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({
                 serviceItem: item, verified: isBusinessVerified,
                 priceRange: Helper.calculateProductPrice(item)
-            })) 
+            }))
             result.serviceItems = productsInsideService;
         }
 
@@ -262,6 +262,23 @@ export class ServiceService {
             })
 
         }))
+    }
+
+    async getServicesById(serviceIds: String[]) {
+        var servicesInfo: ServiceDTO[] = [];
+        var services = await this.serviceRepo.find({ _id: { $in: serviceIds } })
+        for await (const iterator of services) {
+            var reviewResult = await this.reviewService.getHighlevelReviewInfo({ service: iterator._id }, null, 1, 5 , null , null , false)
+            var result = new ServiceDTO({
+                service: iterator,
+                reviewInfo: reviewResult
+            })
+            servicesInfo.push(result);
+        }
+
+        return servicesInfo
+
+
     }
 
     async getServices(query?: String, pageIndex: number = 1, pageSize: number = 20): Promise<ServiceDTO[]> {
