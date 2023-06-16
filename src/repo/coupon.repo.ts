@@ -28,7 +28,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
     }
     async getActiveCoupons(endDate: Date, page: number, pageSize: number, id?: String[]): Promise<CouponDTO[]> {
         if (id) {
-            var result = await this.couponModel.find(
+            var couponrs = await this.couponModel.find(
                 {
                     _id: { $in: id },
                     endDate: { $gte: new Date(endDate) },
@@ -42,7 +42,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             ]).lean()
         }
         else {
-            var result = await this.couponModel.find(
+            var couponrs = await this.couponModel.find(
                 {
                     endDate: { $gte: new Date(endDate) },
                     "couponCodes": { $elemMatch: { used: false } }
@@ -56,7 +56,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
         }
 
 
-        var result = await this.couponModel.find(
+        var couponrs = await this.couponModel.find(
             {
                 endDate: { $gte: new Date(endDate) },
                 "couponCodes": { $elemMatch: { used: false } }
@@ -67,8 +67,9 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
                 path: "service", populate: { path: "serviceItems", model: "ServiceItem" },
             },
         ]).lean()
+        console.log("coupons find result" , couponrs)
 
-        var couponResult = await result.map(coupon => {
+        var couponResult = await couponrs.map(coupon => {
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser

@@ -31,7 +31,7 @@ export class CouponService {
             this.businessRepo.addSession(session)
         }
         //generate code
-        var couponCodes = this.helper.generateCouponCodes(couponInfo.maxAmount ?? 100)
+        var couponCodes = this.helper.generateCouponCodes(couponInfo.maxAmount ?? 50)
         couponInfo.couponCodes = couponCodes
 
         var result = await this.couponRepo.add(couponInfo)

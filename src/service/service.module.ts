@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from 'src/auth/auth.module';
 import { BusinessModule } from 'src/business/business.module';
@@ -14,6 +14,7 @@ import { ServiceController } from './service.controller';
 import { ServiceService } from './service.service';
 import { MessageModule } from 'src/messaging/message.module';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -22,7 +23,7 @@ import { MessageModule } from 'src/messaging/message.module';
     ]),
     AuthModule,
     WalletModule,
-    BusinessModule,
+    // BusinessModule,
     ReviewModule,
     MessageModule,
     UserModule
@@ -47,7 +48,8 @@ import { MessageModule } from 'src/messaging/message.module';
     
     ServiceRepository.injectName,
     ServiceItemRepository.injectName,
-    Helper.INJECT_NAME
+    Helper.INJECT_NAME,
+    ServiceService
   ]
 })
 export class ServiceModule { }

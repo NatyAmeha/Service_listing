@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AuthModule } from 'src/auth/auth.module';
@@ -13,7 +13,11 @@ import { BusinessController } from './business.controller';
 import { BusinessService } from './business.service';
 import { MessageModule } from 'src/messaging/message.module';
 import { UserModule } from 'src/user/user.module';
+import { ServiceModule } from 'src/service/service.module';
+import { CouponService } from 'src/order/coupon.service';
+import { ServiceService } from 'src/service/service.service';
 
+@Global()
 @Module({
     imports: [
         MongooseModule.forFeature([
@@ -23,6 +27,7 @@ import { UserModule } from 'src/user/user.module';
         ]),
         AuthModule,
         UserModule,
+        ServiceModule,
         MessageModule,
         ReviewModule
     ],
@@ -43,10 +48,13 @@ import { UserModule } from 'src/user/user.module';
         },
 
         BusinessService,
+        
+        
+        
 
 
     ],
     controllers: [BusinessController],
     exports: [BusinessRepository.injectName]
 })
-export class BusinessModule { }
+export class BusinessModule { } 

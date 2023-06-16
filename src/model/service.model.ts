@@ -45,7 +45,7 @@ export type ServiceDocument = HydratedDocument<Service>;
 
 export var serviceSchema = new Schema<Service>({
     name: { type: String, required: true, trim : true },
-    description: { type: String, required: true, trim : true },
+    description: { type: String, trim : true },
     images: { type: [String], required: true },
     callToAction: { type: String, trim : true },
     business: { type: Types.ObjectId, ref: "Business" },

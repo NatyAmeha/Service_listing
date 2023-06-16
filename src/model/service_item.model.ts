@@ -74,7 +74,7 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     likeCount: { type: Number, default: 0 },
     viewCount: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
-    callToAction: { type: String, required: true },
+    callToAction: { type: String, default : "Buy"},
     canOrder: { type: Boolean, default: true },
     expireDate: { type: Date },
     dateCreated: { type: Date, default: Date.now() },

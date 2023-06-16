@@ -112,7 +112,8 @@ export class BusinessService {
         businessDTOResult.reviewInfo = new ReviewDTO({ ...businessReview, reviews: [] })
 
         //get trending products
-        var products = await this.serviceItemRepo.findandSort({ business: businessId }, { viewCount: -1 }, 10, 1)
+        var length = businessDTOResult.businessInfo.type == "online_store" ? null : 10
+        var products = await this.serviceItemRepo.findandSort({ business: businessId }, { viewCount: -1 }, length, 1)
         var productDTOs = products.map(product => new ProductDTO({ serviceItem: product , priceRange : Helper.calculateProductPrice(product) }))
         businessDTOResult.trendingProducts = productDTOs
 
