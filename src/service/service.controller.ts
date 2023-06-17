@@ -62,8 +62,9 @@ export class ServiceController {
     }
 
     @Get("/:id")
-    async getServiceDetails(@Param("id") businessId: String) {
-        var serviceResult = await this.serviceService.getServiceDetails(businessId)
+    @UseGuards(AuthNotRequired)
+    async getServiceDetails(@Param("id") businessId: String , @GetUser() user? : User ) {
+        var serviceResult = await this.serviceService.getServiceDetails(businessId , user)
         return serviceResult
     }
 
@@ -157,7 +158,18 @@ export class ServiceController {
     @UseGuards(AuthGuard(), RoleGuard)
     async editServiceItem(@Query("id") serviceITemId: String, @Body() serviceItemInfo: ServiceItem, @Res() response: Response) {
         var editResult = await Helper.runInTransaction(this.connection, async session => {
-            var result = await this.serviceService.editServiceItem(serviceITemId, serviceItemInfo, session)
+            var result = await this.serviceService.editProduct(serviceITemId, serviceItemInfo, session)
+            return result;
+        })
+        response.status(200).json(editResult)
+    }
+
+    @Put("/product/:id/update_visibility")
+    @Role(AccountType.SERVICE_PROVIDER)
+    @UseGuards(AuthGuard(), RoleGuard)
+    async updateProductVisibility(@Param("id") productId: String, @Query("show", ParseBoolPipe) visisbility : Boolean, @Res() response: Response) {
+        var editResult = await Helper.runInTransaction(this.connection, async session => {
+            var result = await this.serviceService.changeProductVisibility(productId, visisbility, session)
             return result;
         })
         response.status(200).json(editResult)

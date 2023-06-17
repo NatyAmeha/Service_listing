@@ -40,9 +40,9 @@ export class BusinessService {
 
         if (businessCreateInfo.subscriptionLevel == SubscriptionLevel.PREMIUM)
             businessCreateInfo.business.verified = true
-        else businessCreateInfo.business.verified = false;  
+        else businessCreateInfo.business.verified = false;
         //save business info
-        const {_id , ...restBusinessInfo} = businessCreateInfo.business
+        const { _id, ...restBusinessInfo } = businessCreateInfo.business
         var businessResult = await this.businessRepo.add(restBusinessInfo)
 
         // update user info
@@ -68,22 +68,22 @@ export class BusinessService {
         return updateResult
     }
 
-    async updateBusinessClaimStatus(businessId: String, claimStatus : Boolean): Promise<Boolean> {
+    async updateBusinessClaimStatus(businessId: String, claimStatus: Boolean): Promise<Boolean> {
         // update business info
-        var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId }, {cliamed : claimStatus})
+        var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId }, { cliamed: claimStatus })
         return updateResult
     }
 
 
 
-    async updateBusinessVerificationStatus(businessId: String, status : boolean): Promise<Boolean> {
+    async updateBusinessVerificationStatus(businessId: String, status: boolean): Promise<Boolean> {
         // update business info
-        var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId },{verified : status})
+        var updateResult = await this.businessRepo.updateWithFilter({ _id: businessId }, { verified: status })
         return updateResult
     }
 
-    async getBusinessWithLimitedInfo(businessId : String , selectedFields : String) : Promise<Business>{
-        var businessInfo = await this.businessRepo.get(businessId, ["services", "coupons", "services.coupons"] , selectedFields)
+    async getBusinessWithLimitedInfo(businessId: String, selectedFields: String): Promise<Business> {
+        var businessInfo = await this.businessRepo.get(businessId, ["services", "coupons", "services.coupons"], selectedFields)
         return businessInfo
     }
 
@@ -114,8 +114,14 @@ export class BusinessService {
         //get trending products
         var length = businessDTOResult.businessInfo.type == "online_store" ? null : 10
         var products = await this.serviceItemRepo.findandSort({ business: businessId }, { viewCount: -1 }, length, 1)
-        var productDTOs = products.map(product => new ProductDTO({ serviceItem: product , priceRange : Helper.calculateProductPrice(product) }))
-        businessDTOResult.trendingProducts = productDTOs
+        
+        if (rest.creator.toString() != user._id)
+            businessDTOResult.trendingProducts = products.filter(product => product.visibility == true || product.visibility == null)
+                ?.map(product => new ProductDTO({ serviceItem: product, priceRange: Helper.calculateProductPrice(product) }))
+        else
+            businessDTOResult.trendingProducts = products?.map(product => new ProductDTO({ serviceItem: product, priceRange: Helper.calculateProductPrice(product) }))
+
+
 
         // check business is in user's favorite
         if (user) {

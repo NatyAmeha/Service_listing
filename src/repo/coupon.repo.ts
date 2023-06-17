@@ -67,7 +67,6 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
                 path: "service", populate: { path: "serviceItems", model: "ServiceItem" },
             },
         ]).lean()
-        console.log("coupons find result" , couponrs)
 
         var couponResult = await couponrs.map(coupon => {
             const { service, business, ...rest } = coupon
@@ -77,7 +76,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
 
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService
-                })
+                }) 
             })
             return new CouponDTO({
                 couponInfo: rest,

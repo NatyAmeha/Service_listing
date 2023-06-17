@@ -19,6 +19,7 @@ export class ServiceItem {
     serviceName?: String
     category?: String
     tags?: String[]
+    visibility : Boolean = true
     fixedPrice?: number
     minPrice?: number
     maxPrice?: number
@@ -62,6 +63,7 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     businessName: { type: String, required: true },
     category: { type: String  },
     tags: { type: [String] },
+    visibility : {type : Boolean , default : true},
     fixedPrice: { type: Number },
     minPrice: {
         type: Number, 

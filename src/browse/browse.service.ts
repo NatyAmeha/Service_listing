@@ -110,12 +110,13 @@ export class BrowseService {
                 })
 
             }))
-            browseResult.products = productResults.filter(product => product.verified == true)
+            browseResult.products = productResults
+                .filter(product => product.verified == true && (product.serviceItem.visibility == true || product.serviceItem.visibility == null))
         }
         return browseResult
     }
 
-    async getCategories() {
+    async getCategories() { 
         var result = await this.categoryRepo.find({});
         return result;
     }
@@ -161,7 +162,7 @@ export class BrowseService {
         var availableCoupons: Coupon[] = [];
         var businessesInfo: BusinessDTO[] = []
 
-        var businessesbyCategory = await this.businessRepo.find({ category: categoryName , $caseSensitive: false }, ["coupons"])
+        var businessesbyCategory = await this.businessRepo.find({ category: categoryName, $caseSensitive: false }, ["coupons"])
 
         businessesInfo = await Promise.all(businessesbyCategory.map(async business => {
             const { coupons, ...rest } = business

@@ -75,6 +75,8 @@ export class ServiceService {
         return updateResult
     }
 
+
+
     async createReview(reviewInfo: Review, user: User, session: ClientSession): Promise<Review> {
         this.reviewRepo.addSession(session)
         this.serviceRepo.addSession(session)
@@ -142,12 +144,21 @@ export class ServiceService {
 
 
 
-    async editServiceItem(id: String, serviceItemInfo: ServiceItem, session?: ClientSession): Promise<Boolean> {
+    async editProduct(id: String, serviceItemInfo: ServiceItem, session?: ClientSession): Promise<Boolean> {
         if (session) {
             this.serviceItemRepo.addSession(session)
         }
         //add service item
         var updateResult = await this.serviceItemRepo.update({ _id: id }, serviceItemInfo)
+        return updateResult
+    }
+
+    async changeProductVisibility(productId: String, visibility: Boolean, session?: ClientSession) {
+        if (session) {
+            this.serviceItemRepo.addSession(session)
+        }
+        //add service item
+        var updateResult = await this.serviceItemRepo.updateWithFilter({ _id: productId }, { visibility: visibility })
         return updateResult
     }
 
@@ -161,7 +172,7 @@ export class ServiceService {
         return result;
     }
 
-    async getServiceDetails(id: String): Promise<ServiceDTO> {
+    async getServiceDetails(id: String, user: User): Promise<ServiceDTO> {
 
         var serviceInfo = await this.serviceRepo.get(id, ['serviceItems', "business", "coupons"])
         //get related services
@@ -178,10 +189,17 @@ export class ServiceService {
         })
 
         if (serviceItems?.length > 0) {
-            var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({
-                serviceItem: item, verified: isBusinessVerified,
-                priceRange: Helper.calculateProductPrice(item)
-            }))
+            if (rest.creator.toString() != user._id)
+
+                var productsInsideService = (serviceItems as ServiceItem[])?.filter(product =>  product.visibility == true || product.visibility == null).map(item => new ProductDTO({
+                    serviceItem: item, verified: isBusinessVerified,
+                    priceRange: Helper.calculateProductPrice(item)
+                }))
+            else
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({
+                    serviceItem: item, verified: isBusinessVerified,
+                    priceRange: Helper.calculateProductPrice(item)
+                }))
             result.serviceItems = productsInsideService;
         }
 
@@ -268,7 +286,7 @@ export class ServiceService {
         var servicesInfo: ServiceDTO[] = [];
         var services = await this.serviceRepo.find({ _id: { $in: serviceIds } })
         for await (const iterator of services) {
-            var reviewResult = await this.reviewService.getHighlevelReviewInfo({ service: iterator._id }, null, 1, 5 , null , null , false)
+            var reviewResult = await this.reviewService.getHighlevelReviewInfo({ service: iterator._id }, null, 1, 5, null, null, false)
             var result = new ServiceDTO({
                 service: iterator,
                 reviewInfo: reviewResult
