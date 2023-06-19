@@ -101,12 +101,15 @@ export class BrowseService {
             var productResults = await Promise.all(serviceItemResult.map(async item => {
                 const { business, ...rest } = item
                 var serviceReviewInfo = await this.reviewService.getHighlevelReviewInfo({ service: item.service })
+
                 var serviceInfo = new ServiceDTO({ reviewInfo: serviceReviewInfo })
 
                 var isProductVerified = Helper.isBusinessVerfied(business as Business)
+                var couponAvailableInBusienss = await this.couponRepo.getActiveCouponsForBusiness((business as Business)._id)
                 return new ProductDTO({
                     serviceItem: rest, serviceInfo: serviceInfo, businessInfo: business as Business, verified: isProductVerified,
-                    priceRange: Helper.calculateProductPrice(rest)
+                    priceRange: Helper.calculateProductPrice(rest),
+                    couponsInfo : couponAvailableInBusienss
                 })
 
             }))
