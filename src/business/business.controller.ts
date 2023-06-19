@@ -117,6 +117,8 @@ export class BusinessController {
     async getBusinessDetails(@Param("id") businessId: String, @Res() res : Response,  @GetUser() user?: User) {
         console.log("business id", businessId)
         var businessResult = await this.businesService.getBusinessDetails(businessId, user)
+        var activeCoupons = await this.couponService.getActiveCouponsForBusiness(businessId);
+        businessResult.coupons = activeCoupons;
         res.status(200).json(businessResult)
        
 

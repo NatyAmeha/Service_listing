@@ -48,6 +48,12 @@ export class CouponService {
 
     }
 
+    async getActiveCouponsForBusiness(businessId : String ): Promise<CouponDTO[]> {
+        var result = await this.couponRepo.getActiveCouponsForBusiness(businessId)
+        return result
+
+    }
+
     async getCouponDetails(couponId: String): Promise<CouponDTO> {
         var result = await this.couponRepo.get(couponId, [
             "business",
