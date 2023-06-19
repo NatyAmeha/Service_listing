@@ -49,49 +49,49 @@ export class BusinessController {
             var upgradeAccountResult = await this.authService.upgradeAccount(user, AccountType.SERVICE_PROVIDER, session)
             var businessResult = await this.businesService.createBusiness(businessInfo, user?._id, session)
             
-            // if business = online_store create store service 
-        //     if(businessInfo.business.type == "online_store"){
-        //         var serviceInfo = new Service({
-        //             name : `${businessInfo.business.name} Store`,
-        //             contact : businessInfo.business.contact,
-        //             addresses :  businessInfo.business.addresses,
-        //             images : [businessInfo.business.images.shift()],
-        //             business : businessInfo.business._id,
-        //             type : ServiceItemType.PRODUCT,
-        //             tags : ["Shopping"],
-        //             businessName : businessInfo.business.name,
-        //             description : "Buy products from our store, enjoy our deals and discount. ",
-        //             creator : user._id,
-        //             reviewPoints : ["devlivery"]
+            // if business = online_store create store service  and claimed
+            if(businessInfo.business.type == "online_store" && businessInfo.business.claimed == true){
+                var serviceInfo = new Service({
+                    name : `${businessResult.name} Store`,
+                    contact : businessResult.contact,
+                    addresses :  businessResult.addresses,
+                    images : [businessResult.images[0]],
+                    business : businessResult._id,
+                    type : "online_store",
+                    tags : ["Shopping"],
+                    businessName : businessResult.name,
+                    description : "Buy products from our store, enjoy our deals and discount. ",
+                    creator : user._id,
+                    reviewPoints : ["Overall experiance"]
+                })
+                var serviceCreateResult = await this.serviceService.createService(serviceInfo , session)
+            }
 
-        //         })
-        //         var serviceCreateResult = await this.serviceService.createService(serviceInfo , session)
-        //     }
+            console.log(businessResult._id  ,serviceCreateResult._id)
+            // throw new Error("intentional error")
+            
+            
+            // create coupon for new businesses
+            
+            var couponStartDate = new Date(Date.now())
+            var couponEndDate = new Date(Date.now())
+             couponEndDate.setMonth(couponEndDate.getMonth() +1);
 
-        //     console.log(businessResult._id  ,serviceCreateResult._id)
+            var couponInfo = new Coupon({name : `10% cashback from ${businessResult.name}`,
+            business : businessResult._id,
+            businessName : businessResult.name,
+            serviceName : serviceCreateResult.name,
+            maxAmount : 50,
+            couponType : CouponType.CASHBACK,
+            startDate : couponStartDate,
+            endDate : couponEndDate,
             
-            
-        //     // create coupon for new businesses
-            
-        //     var couponStartDate = new Date(Date.now())
-        //     var couponEndDate = new Date(Date.now())
-        //      couponEndDate.setMonth(couponEndDate.getMonth() +1);
-
-        //     var couponInfo = new Coupon({name : `10% off from ${businessInfo.business.name}`,
-        //     business : businessResult._id,
-        //     businessName : businessResult.name,
-        //     serviceName : serviceCreateResult.name,
-        //     maxAmount : 50,
-        //     couponType : CouponType.FIXED_AMOUNT,
-        //     startDate : couponStartDate,
-        //     endDate : couponEndDate,
-            
-        //     images : businessResult.images ,
-        //     service : [serviceCreateResult._id],
-        //     creator : user._id,
-        //     description : "10% off for the first 50 customers buying our products and services"
-        // })
-        //     var couponCreateResult = await this.couponService.createCoupon(couponInfo);
+            images : [businessResult.images[0]] ,
+            service : [serviceCreateResult._id],
+            creator : user._id,
+            description : "10% cashback for the first 50 customers buying our products and services.\nለመጀመሪያዎቹ 50 ደንበኞቻችን ምርቶቻችንን እና አገልግሎቶቻችንን ለሚገዙ 10% ተመላሽ ያገኛሉ"
+        })
+            var couponCreateResult = await this.couponService.createCoupon(couponInfo);
             
             return businessResult
         })

@@ -50,7 +50,7 @@ export var serviceSchema = new Schema<Service>({
     callToAction: { type: String, trim : true },
     business: { type: Types.ObjectId, ref: "Business" },
     businessName: { type: String, required: true , trim : true},
-    type : {type : String , enum : ServiceItemType},
+    type : {type : String },
     tags: { type: [String], default: [] },
     viewCount: { type: Number, default: 0 },
     active: { type: Boolean, default: true },

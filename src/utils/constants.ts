@@ -23,7 +23,7 @@ export enum ServiceItemType{
 }
 
 export enum CouponType {
-    FIXED_AMOUNT = "FIXED_AMOUNT", TIMELY = "TIMELY"
+    FIXED_AMOUNT = "FIXED_AMOUNT", TIMELY = "TIMELY", CASHBACK = "CASHBACK", DISCOUNT = "DISCOUNT"
 }
 
 export enum NotificationType {

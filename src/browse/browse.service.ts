@@ -84,10 +84,10 @@ export class BrowseService {
         // "https://firebasestorage.googleapis.com/v0/b/komkum-566ac.appspot.com/o/gast%20gym.jpg?alt=media&token=5b37195c-70ab-4c6d-ae29-786af9da06a3",
         // "https://firebasestorage.googleapis.com/v0/b/komkum-566ac.appspot.com/o/gast_gym_2.jpg?alt=media&token=7202facc-6cd8-4f33-9730-cbd32138f796"
 
-
+        
         var browseResult = new BrowseDTO({
             coupons: couponResult, featuredBusinesses: featuredBusinessDTO,
-            categories: categoryResult, topBusinesses: topBusinessesByRating, featuredServices: trendingServiceResult
+            categories: categoryResult, topBusinesses: topBusinessesByRating, featuredServices: trendingServiceResult.filter(service => service.service.type != "online_store")
         })
         //Query products from coupons and services
         couponResult.forEach(coupon => {

@@ -49,16 +49,17 @@ export class ServiceSearchHandler implements ISearchHandler {
         serviceResult = await this.serviceRepo.search(query, additionalQueryInfo, {}, 100, ['reviews', "business", "serviceItems", , 'coupons'])
         if (serviceResult.length == 0) {
             var topServices = await this.serviceRepo.findandSort({}, { viewCount: -1 }, 10, 1, ['reviews', 'business', "serviceItems", 'coupons'])
+            
             serviceResult = topServices
             exactResult = false;
         }
-
-        var serviceDTOResult = serviceResult.map(service => {
+        _.remove(topServices , service => service.type == "online_store")
+        var serviceDTOResult = serviceResult?.map(service => {
             const { reviews, serviceItems, coupons, business, ...rest } = service
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
             var reviewDTO = new ReviewDTO({ rating: ratingInfo.rating, count: ratingInfo.count })
 
-            var couponsInfo = _.orderBy(this.helper.filterActiveCoupons(coupons as Coupon[]), coupon => coupon.couponInfo.discountAmount, "desc")
+            var couponsInfo = _.orderBy(this.helper?.filterActiveCoupons(coupons as Coupon[]), coupon => coupon.couponInfo.discountAmount, "desc")
 
             var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item, priceRange: Helper.calculateProductPrice(item) }))
 
@@ -70,10 +71,10 @@ export class ServiceSearchHandler implements ISearchHandler {
 
         })
 
-        serviceDTOResult = serviceDTOResult.filter(service => service.verified == true)
+        serviceDTOResult = serviceDTOResult?.filter(service => service.verified == true)
         if (sortBy == SortOption.PRICE) {
             serviceDTOResult = _.orderBy(serviceDTOResult, serviceDto => {
-                var products = serviceDto.serviceItems.map(e => e.serviceItem)
+                var products = serviceDto.serviceItems?.map(e => e.serviceItem)
                 return this.helper.calculateServicePriceRange(products).min
             })
         }
@@ -115,7 +116,7 @@ export class BusinessSearchHandler implements ISearchHandler {
         businessResult = await this.businessRepo.search(query, additionalQueryInfo, {}, 100, ['reviews'])
         if (businessResult.length == 0) {
             //fetch businesses using name from products result
-            var businessNames = previousData.products.map(p => p.serviceItem.businessName);
+            var businessNames = previousData.products?.map(p => p.serviceItem.businessName);
 
             if (businessNames.length > 0) {
                 var businesses = await this.businessRepo.find({ name: { $in: _.uniq(businessNames) } }, ['reviews'])
@@ -128,7 +129,7 @@ export class BusinessSearchHandler implements ISearchHandler {
             }
         }
 
-        var businessDTOResult = businessResult.filter(business => business.verified == true).map(business => {
+        var businessDTOResult = businessResult?.filter(business => business.verified == true)?.map(business => {
             const { reviews, ...rest } = business
             var ratingInfo = this.helper.calculateRating(reviews as Review[])
             var reviewDTO = new ReviewDTO({ rating: ratingInfo.rating, count: ratingInfo.count })
@@ -194,8 +195,8 @@ export class ProductSearchHandler implements ISearchHandler {
             productResult = topProducts
             exactResult = false
         }
-        var productDTOResult = await Promise.all(productResult.filter(product => product.visibility == true || product.visibility == null)
-            .map(async product => {
+        var productDTOResult = await Promise.all(productResult?.filter(product => product.visibility == true || product.visibility == null)
+            ?.map(async product => {
                 const { service, business, ...rest } = product
 
                 var serviceLevelCoupons = (service as Service).coupons as Coupon[]
@@ -209,14 +210,14 @@ export class ProductSearchHandler implements ISearchHandler {
                 })
 
                 if (serviceLevelCoupons && serviceLevelCoupons.length > 0) {
-                    var activeCoupons = this.helper.filterActiveCoupons(serviceLevelCoupons)
+                    var activeCoupons = this.helper?.filterActiveCoupons(serviceLevelCoupons)
                     productInfo.couponsInfo = activeCoupons
                 }
                 return productInfo
             }))
 
 
-        var validProuctSearchResult = productDTOResult.filter(product => product.verified == true)
+        var validProuctSearchResult = productDTOResult?.filter(product => product.verified == true)
 
 
         var searchData: SearchDTO = { products: validProuctSearchResult, exactProductSearch: exactResult }
