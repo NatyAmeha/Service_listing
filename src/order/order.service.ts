@@ -14,7 +14,7 @@ import * as _ from 'lodash'
 import { IServiceItemRepo, ServiceItemRepository } from 'src/repo/service_item.repo';
 import { OrderDTO, OrderStatusDTO } from 'src/dto/order.dto';
 import { Business } from 'src/model/business.model';
-import { OrderStatus, TransactionAction, TransactionStatus, TransactionType } from 'src/utils/constants';
+import { CouponType, OrderStatus, TransactionAction, TransactionStatus, TransactionType } from 'src/utils/constants';
 import { UserDTO } from 'src/dto/user.dto';
 import { User } from 'src/model/user.model';
 import { Service } from 'src/model/service.model';
@@ -60,14 +60,16 @@ export class OrderService {
         var codeResult = await this.helper.generateCode(6, [], "0123456789")
 
         orderInfo.code = codeResult
-        console.log("total price before discount", orderInfo.price)
         var totalDiscountByBusinesses = await this.appyDiscountToOrderProvidedByBusinesses(orderInfo, user)
         orderInfo.price = orderInfo.price - totalDiscountByBusinesses;
+
+        orderInfo.items.forEach(item => item._id = new Types.ObjectId().toString())
 
         //save order info 
         var result = await this.orderRepo.add(orderInfo)
         //save cashback transaction
-        var cashbackTransaction = await this.savecashbackRewardTransaction(orderInfo, user, session);
+
+        // var cashbackTransaction = await this.savecashbackRewardTransaction(orderInfo, user, session);
         return result;
     }
 
@@ -180,9 +182,13 @@ export class OrderService {
         return result
     }
 
-    async appyDiscountToOrderProvidedByBusinesses(orderInfo: Order, user: User): Promise<number> {
+    async appyDiscountToOrderProvidedByBusinesses(orderInfo: Order, user: User , session?: ClientSession): Promise<number> {
         var totalDiscount = 0;
         var couponCodeIds = orderInfo.items.map(product => product.coupon)
+
+        if (session) {
+            this.transactionRepo?.addSession(session);
+        }
         if (couponCodeIds.length > 0) {
             // check coupon availability and validity
             var date = new Date(Date.now())
@@ -195,22 +201,40 @@ export class OrderService {
                     var couponAppliedToProduct = validCoupons.find(c => c.couponInfo._id == item.coupon)?.couponInfo
 
                     if (couponAppliedToProduct && item.serviceItem) {
-                        //apply coupon codes to the order
                         var productInfo = await this.serviceItemRepo.get(item.serviceItem as String)
+                        if (couponAppliedToProduct.couponType == CouponType.DISCOUNT.toString()) {
+                            //apply coupon codes to the order
 
-                        if (orderInfo.price && productInfo.fixedPrice) {
-                            var discountedAmount = ((item.qty * item.price) * couponAppliedToProduct.discountAmount) / 100
-                            console.log("price before discount", orderInfo.price)
-                            // orderInfo.price = orderInfo.price - discountedAmount
-                            totalDiscount += discountedAmount
-                            console.log("discount amount 2", discountedAmount, orderInfo.price, couponAppliedToProduct.discountAmount)
+                            if (orderInfo.price && productInfo.fixedPrice) {
+                                var discountedAmount = ((item.qty * item.price) * couponAppliedToProduct.discountAmount) / 100
+                                console.log("price before discount", orderInfo.price)
+                                // orderInfo.price = orderInfo.price - discountedAmount
+                                totalDiscount += discountedAmount
+                                console.log("discount amount 2", discountedAmount, orderInfo.price, couponAppliedToProduct.discountAmount)
+                            }
                         }
-                        // if (orderInfo.priceRange && productInfo.minPrice && productInfo.maxPrice) {
-                        //     orderInfo.priceRange.min = orderInfo.priceRange.min - (((item.qty * productInfo.minPrice) * couponAppliedToProduct.discountAmount)) / 100
-                        //     orderInfo.priceRange.max = orderInfo.priceRange.max - (((item.qty * productInfo.maxPrice) * couponAppliedToProduct.discountAmount)) / 100
-                        // }
-                        // create transaction for cashback to be available after review
-
+                        else if (couponAppliedToProduct.couponType == CouponType.CASHBACK.toString()) {
+                            console.log("cashback coupon" , item.serviceItem)
+                            var cashbackReward = ((item.price * 10) / 100) * (item.qty ?? 1);
+                            cashbackReward = cashbackReward > 100 ? 100 : cashbackReward
+                            var transaction = new Transaction({
+                                amount: cashbackReward,
+                                sourceName: `Cashback reward from ${productInfo?.businessName }`,
+                                recepient: user._id,
+                                description: `You got a cashback reward by ordering ${productInfo.name} from ${productInfo.businessName}`,
+                                recepientName: user.username,
+                                order: orderInfo._id,
+                                service: item.service as String,
+                                product: item.serviceItem,
+                                action: TransactionAction.REVIEW,
+                                status: TransactionStatus.PENDING,
+                                type: TransactionType.DISCOUNTCASHBACK,
+                                dateCreated: new Date(Date.now())
+        
+                                // description : `You got ${discountedAmount} Birr discount cashback by  `
+                            })
+                            var transactionSaveResult = await this.transactionRepo.add(transaction)
+                        }
                         //update coupon info
                         var codeIndex = couponAppliedToProduct.couponCodes.findIndex(cCode => cCode.used == false)
                         if (codeIndex > -1) {
@@ -220,6 +244,7 @@ export class OrderService {
                             console.log("coupon update result", couponUpdateResult)
                         }
                     }
+                   
                 }
             }
 
@@ -232,29 +257,39 @@ export class OrderService {
         if (session) {
             this.transactionRepo?.addSession(session);
         }
+        var date = new Date(Date.now())
+
 
         for await (const item of orderInfo.items) {
             var productInfo = await this.serviceItemRepo.get(item.serviceItem as String)
 
-            var cashbackReward = ((item.price * 10)  / 100) * (item.qty ?? 1);
-            cashbackReward = cashbackReward > 100 ? 100 : cashbackReward
-            var transaction = new Transaction({
-                amount: cashbackReward ,
-                sourceName: `Cash back reward from ${productInfo.businessName}`,
-                recepient: user._id,
-                description: `You got a cashback reward by ordering ${productInfo.serviceName} from ${productInfo.businessName}`,
-                recepientName: user.username,
-                order: orderInfo._id,
-                service: item.service as String,
-                product: item.serviceItem,
-                action: TransactionAction.REVIEW,
-                status: TransactionStatus.PENDING,
-                type: TransactionType.DISCOUNTCASHBACK,
-                dateCreated : new Date(Date.now())
-                
-                // description : `You got ${discountedAmount} Birr discount cashback by  `
-            })
-            var transactionSaveResult = await this.transactionRepo.add(transaction)
+            var validCoupons = await this.couponRepo.getActiveCoupons(date, 1, 1, [item.coupon])
+            if (validCoupons.length > 0) {
+                var selecctedCoupon = validCoupons[0]
+                if (selecctedCoupon.couponInfo.couponType == CouponType.CASHBACK.toString()) {
+                    var cashbackReward = ((item.price * 10) / 100) * (item.qty ?? 1);
+                    cashbackReward = cashbackReward > 100 ? 100 : cashbackReward
+                    var transaction = new Transaction({
+                        amount: cashbackReward,
+                        sourceName: `Cashback reward from ${productInfo.businessName}`,
+                        recepient: user._id,
+                        description: `You got a cashback reward by ordering ${productInfo.name} from ${productInfo.businessName}`,
+                        recepientName: user.username,
+                        order: orderInfo._id,
+                        service: item.service as String,
+                        product: item.serviceItem,
+                        action: TransactionAction.REVIEW,
+                        status: TransactionStatus.PENDING,
+                        type: TransactionType.DISCOUNTCASHBACK,
+                        dateCreated: new Date(Date.now())
+
+                        // description : `You got ${discountedAmount} Birr discount cashback by  `
+                    })
+                    var transactionSaveResult = await this.transactionRepo.add(transaction)
+                }
+            }
+
+
         }
         return true;
 

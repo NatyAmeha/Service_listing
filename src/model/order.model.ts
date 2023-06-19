@@ -32,8 +32,8 @@ export class Order {
 }
 
 export class OrderItem {
-    _id: String
-    name : String
+    _id?: String
+    name? : String
     serviceItem?: String | ServiceItem
     productInfo: ServiceItem
     qty?: number
@@ -51,6 +51,7 @@ export class OrderItem {
 }
 
 export var orderSchema: Schema = new mongoose.Schema<Order>({
+    
     name: { type: String, required: true },
     image: { type: [String], required: true },
     price: { type: Number },
@@ -63,6 +64,7 @@ export var orderSchema: Schema = new mongoose.Schema<Order>({
     business: { type: Types.ObjectId, ref: "Business" },
     items: [{
         type: {
+           
             name : {type : String , trim : true},
             serviceItem: { type: Types.ObjectId, ref: "ServiceItem" },
             qty: { type: Number },

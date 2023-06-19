@@ -28,17 +28,24 @@ export class OrderController {
 
     @Post("/create")
     @UseGuards(AuthGuard())
-    async placeOrder(@GetUser() user: User, @Body() orderInfo: Order) {
+    async placeOrder(@GetUser() user: User, @Body() orderInfo: Order , @Res() response : Response) {
         //create order
         const { _id, ...rest } = orderInfo
         var result = await Helper.runInTransaction(this.dbConnection, async session => {
             // create order
             var orderCreateResult = await this.orderService.makeOrder(rest, user, session)
             // update user info
+            
             var updateResult = await this.userService.addOrderToUser(user._id, orderCreateResult._id, session)
 
             // create and send notification to service provider
-            var servicesInOrder = orderCreateResult.items.map(item => item.service as String)
+            
+
+            return orderCreateResult
+        },)
+        response.status(201).json(result)
+
+        var servicesInOrder = result.items.map(item => item.service as String)
             if (servicesInOrder.length > 0) {
                 for await (const id of servicesInOrder) {
                     var serviceOwner = await this.userService.getServiceProviderUserInfo(id)
@@ -46,7 +53,7 @@ export class OrderController {
                     var notificationInfo = new Notification({
                         title: "New order arrived",
                         description: `New order has come for your service or product`,
-                        order: orderCreateResult._id,
+                        order: result._id,
                         notificationType: NotificationType.ORDER.toString(),
                         recepient: serviceOwner._id,
                         service: id,
@@ -56,10 +63,6 @@ export class OrderController {
                 }
             }
 
-
-            return orderCreateResult
-        },)
-        return result
     }
 
 
@@ -93,7 +96,7 @@ export class OrderController {
     }
 
 
-    
+    asdjf;laskdfasdfasdfsadf
 
     @Put("/:id/update_item_status")
     // @Role(AccountType.SERVICE_PROVIDER)
@@ -104,26 +107,26 @@ export class OrderController {
             return transactionResult
         })
 
-        console.log("transaction result" , result)
+        
 
         response.status(200).json(true);
 
-        // if (result != null && orderStatusInfo.status == OrderStatus.COMPLETED) {
-        //     var notificationInfo = new Notification({
-        //         title: "Congrats, you got a cashbackk reward",
-        //         description: `You got a cashback reward of ${result.amount} Birr. Your reward transferred to your wallet.`,
-        //         order: orderId,
-        //         notificationType: NotificationType.REWARD.toString(),
-        //         recepient: result.recepient,
+        if (result != null && orderStatusInfo.status == OrderStatus.COMPLETED) {
+            var notificationInfo = new Notification({
+                title: "Congrats, you got a cashback reward",
+                description: `You got a cashback reward of ${result.amount} Birr. Your reward transferred to your wallet. Share your experiance by reviewing the business`,
+                order: orderId,
+                notificationType: NotificationType.REWARD.toString(),
+                recepient: result.recepient,
 
-        //     })
-        //     var recepientUser = await (await this.userService.getUserInfo(result.recepient)).user
-        //     if(recepientUser){
-        //         var orderimage = "https://www.shutterstock.com/image-vector/trolley-icon-vector-illustration-logo-260nw-1934827706.jpg"
-        //         var notificationSendResult = await this.notificationService.sendNotification(notificationInfo, recepientUser, orderimage)
-        //     }
+            })
+            var recepientUser = await (await this.userService.getUserInfo(result.recepient)).user
+            if(recepientUser){
+                var orderimage = "https://www.shutterstock.com/image-vector/trolley-icon-vector-illustration-logo-260nw-1934827706.jpg"
+                var notificationSendResult = await this.notificationService.sendNotification(notificationInfo, recepientUser, orderimage)
+            }
             
-        // }
+        }
 
 
     }
