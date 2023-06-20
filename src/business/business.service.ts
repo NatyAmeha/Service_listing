@@ -115,7 +115,7 @@ export class BusinessService {
         var length = businessDTOResult.businessInfo.type == "online_store" ? null : 10
         var products = await this.serviceItemRepo.findandSort({ business: businessId }, { viewCount: -1 }, length, 1)
         
-        if (rest.creator.toString() != user._id)
+        if (user && rest.creator?.toString() != user._id)
             businessDTOResult.trendingProducts = products.filter(product => product.visibility == true || product.visibility == null)
                 ?.map(product => new ProductDTO({ serviceItem: product, priceRange: Helper.calculateProductPrice(product) }))
         else
@@ -125,7 +125,7 @@ export class BusinessService {
 
         // check business is in user's favorite
         if (user) {
-            businessDTOResult.favorite = user.favoriteBusinesses.findIndex(id => id.toString() == businessId.toString()) > -1
+            businessDTOResult.favorite = user.favoriteBusinesses.findIndex(id => id?.toString() == businessId?.toString()) > -1
 
         }
         return businessDTOResult;
