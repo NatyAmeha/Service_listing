@@ -11,7 +11,7 @@ import { BusinessCreateDTO, BusinessDTO } from 'src/dto/business.dto';
 import { Business } from 'src/model/business.model';
 import { User } from 'src/model/user.model';
 import { ReviewService } from 'src/review/review.service';
-import { AccountType, NotificationType } from 'src/utils/constants';
+import { AccountType, CouponType, NotificationType, ServiceItemType } from 'src/utils/constants';
 import { Helper } from 'src/utils/helper';
 import { BusinessService } from './business.service';
 import { AuthService } from 'src/auth/auth.service';
@@ -19,6 +19,10 @@ import { NotificationService } from 'src/messaging/notification.service';
 import { UserService } from 'src/user/user.service';
 import { Notification } from 'src/model/notification.model';
 import { MessageService } from 'src/messaging/message.service';
+import { CouponService } from 'src/order/coupon.service';
+import { Coupon } from 'src/model/coupon.model';
+import { ServiceService } from 'src/service/service.service';
+import { Service } from 'src/model/service.model';
 
 @Controller('business')
 export class BusinessController {
@@ -29,6 +33,8 @@ export class BusinessController {
         private userService: UserService,
         private notificationService: NotificationService,
         private messagingService : MessageService,
+        private couponService: CouponService,
+        private serviceService : ServiceService,
         @InjectConnection() private connection: Connection
     ) {
 
@@ -42,11 +48,56 @@ export class BusinessController {
         var result = await Helper.runInTransaction<Business>(this.connection, async session => {
             var upgradeAccountResult = await this.authService.upgradeAccount(user, AccountType.SERVICE_PROVIDER, session)
             var businessResult = await this.businesService.createBusiness(businessInfo, user?._id, session)
+            
+            // if business = online_store create store service  and claimed
+            if(businessInfo.business.type == "online_store" && businessInfo.business.claimed == true){
+                var serviceInfo = new Service({
+                    name : `${businessResult.name} Store`,
+                    contact : businessResult.contact,
+                    addresses :  businessResult.addresses,
+                    images : [businessResult.images[0]],
+                    business : businessResult._id,
+                    type : "online_store",
+                    tags : ["Shopping"],
+                    businessName : businessResult.name,
+                    description : "Buy products from our store, enjoy our deals and discount. ",
+                    creator : user._id,
+                    reviewPoints : ["Overall experiance"]
+                })
+                var serviceCreateResult = await this.serviceService.createService(serviceInfo , session)
+            }
+
+            console.log(businessResult._id  ,serviceCreateResult._id)
+            // throw new Error("intentional error")
+            
+            
+            // create coupon for new businesses
+            
+            var couponStartDate = new Date(Date.now())
+            var couponEndDate = new Date(Date.now())
+             couponEndDate.setMonth(couponEndDate.getMonth() +1);
+
+            var couponInfo = new Coupon({name : `10% cashback from ${businessResult.name}`,
+            business : businessResult._id,
+            businessName : businessResult.name,
+            serviceName : serviceCreateResult.name,
+            maxAmount : 50,
+            couponType : CouponType.CASHBACK,
+            startDate : couponStartDate,
+            endDate : couponEndDate,
+            
+            images : [businessResult.images[0]] ,
+            service : [serviceCreateResult._id],
+            creator : user._id,
+            description : "10% cashback for the first 50 customers buying our products and services.\nለመጀመሪያዎቹ 50 ደንበኞቻችን ምርቶቻችንን እና አገልግሎቶቻችንን ለሚገዙ 10% ተመላሽ ያገኛሉ"
+        })
+            var couponCreateResult = await this.couponService.createCoupon(couponInfo);
+            
             return businessResult
         })
         response.status(201).json(result)
         // send sms notification
-        this.messagingService.sendSmsMessage("New business has registered" , "+251915844494")
+        // this.messagingService.sendSmsMessage("New business has registered" , "+251915844494")
 
     }
 
@@ -66,6 +117,8 @@ export class BusinessController {
     async getBusinessDetails(@Param("id") businessId: String, @Res() res : Response,  @GetUser() user?: User) {
         console.log("business id", businessId)
         var businessResult = await this.businesService.getBusinessDetails(businessId, user)
+        var activeCoupons = await this.couponService.getActiveCouponsForBusiness(businessId);
+        businessResult.coupons = activeCoupons;
         res.status(200).json(businessResult)
        
 

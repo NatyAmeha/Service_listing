@@ -15,6 +15,7 @@ import { Helper } from "src/utils/helper"
 
 export interface ICouponRepo extends IRepository<Coupon> {
     getActiveCoupons(endData: Date, page: number, pageSize: number, id?: String[]): Promise<CouponDTO[]>
+    getActiveCouponsForBusiness(businessId: String): Promise<CouponDTO[]>
     getCouponsForService(serviceId: String): Promise<CouponDTO[]>
     getCouponsForBusiness(businessId: String): Promise<CouponDTO[]>
 }
@@ -26,9 +27,35 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
     constructor(@InjectModel(Coupon.ModelName) protected couponModel: Model<CouponDocument>) {
         super(couponModel)
     }
+
+    async getActiveCouponsForBusiness(businessId: String): Promise<CouponDTO[]> {
+        var coupons = await this.couponModel.find(
+            {
+                business: businessId,
+                endDate: { $gte: new Date(Date.now()) },
+                "couponCodes": { $elemMatch: { used: false } }
+            },
+        )
+            // .populate([
+            //     "business",
+            //     {
+            //         path: "service", populate: { path: "serviceItems", model: "ServiceItem" },
+            //     },
+            // ])
+            .lean()
+        var couponResult = await coupons.map(coupon => {
+
+
+            return new CouponDTO({
+                couponInfo: coupon,
+
+            })
+        })
+        return couponResult
+    }
     async getActiveCoupons(endDate: Date, page: number, pageSize: number, id?: String[]): Promise<CouponDTO[]> {
         if (id) {
-            var result = await this.couponModel.find(
+            var couponrs = await this.couponModel.find(
                 {
                     _id: { $in: id },
                     endDate: { $gte: new Date(endDate) },
@@ -42,7 +69,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             ]).lean()
         }
         else {
-            var result = await this.couponModel.find(
+            var couponrs = await this.couponModel.find(
                 {
                     endDate: { $gte: new Date(endDate) },
                     "couponCodes": { $elemMatch: { used: false } }
@@ -56,7 +83,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
         }
 
 
-        var result = await this.couponModel.find(
+        var couponrs = await this.couponModel.find(
             {
                 endDate: { $gte: new Date(endDate) },
                 "couponCodes": { $elemMatch: { used: false } }
@@ -68,11 +95,11 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             },
         ]).lean()
 
-        var couponResult = await result.map(coupon => {
+        var couponResult = await couponrs.map(coupon => {
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser
-                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({serviceItem : item , priceRange : Helper.calculateProductPrice(item)}))
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item, priceRange: Helper.calculateProductPrice(item) }))
 
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService
@@ -103,7 +130,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             const { service, business, ...remaining } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser
-                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item , priceRange : Helper.calculateProductPrice(item) }))
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item, priceRange: Helper.calculateProductPrice(item) }))
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService,
                 })
@@ -135,7 +162,7 @@ export class CouponRepository extends MongodbRepo<CouponDocument> implements ICo
             const { service, business, ...rest } = coupon
             var serviceDTOResult = (service as Service[]).map(ser => {
                 const { serviceItems, ...rest } = ser
-                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({serviceItem : item , priceRange : Helper.calculateProductPrice(item)}))
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({ serviceItem: item, priceRange: Helper.calculateProductPrice(item) }))
 
                 return new ServiceDTO({
                     service: rest, serviceItems: productsInsideService

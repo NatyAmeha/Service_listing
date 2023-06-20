@@ -45,12 +45,12 @@ export type ServiceDocument = HydratedDocument<Service>;
 
 export var serviceSchema = new Schema<Service>({
     name: { type: String, required: true, trim : true },
-    description: { type: String, required: true, trim : true },
+    description: { type: String, trim : true },
     images: { type: [String], required: true },
     callToAction: { type: String, trim : true },
     business: { type: Types.ObjectId, ref: "Business" },
     businessName: { type: String, required: true , trim : true},
-    type : {type : String , enum : ServiceItemType},
+    type : {type : String },
     tags: { type: [String], default: [] },
     viewCount: { type: Number, default: 0 },
     active: { type: Boolean, default: true },

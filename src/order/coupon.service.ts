@@ -31,7 +31,7 @@ export class CouponService {
             this.businessRepo.addSession(session)
         }
         //generate code
-        var couponCodes = this.helper.generateCouponCodes(couponInfo.maxAmount ?? 100)
+        var couponCodes = this.helper.generateCouponCodes(couponInfo.maxAmount ?? 50)
         couponInfo.couponCodes = couponCodes
 
         var result = await this.couponRepo.add(couponInfo)
@@ -44,6 +44,12 @@ export class CouponService {
 
     async getActiveCoupons(endDate: Date, page: number = 1, pageSize: number = 100): Promise<CouponDTO[]> {
         var result = await this.couponRepo.getActiveCoupons(endDate, page, pageSize)
+        return result
+
+    }
+
+    async getActiveCouponsForBusiness(businessId : String ): Promise<CouponDTO[]> {
+        var result = await this.couponRepo.getActiveCouponsForBusiness(businessId)
         return result
 
     }

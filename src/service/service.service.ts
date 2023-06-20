@@ -75,6 +75,8 @@ export class ServiceService {
         return updateResult
     }
 
+
+
     async createReview(reviewInfo: Review, user: User, session: ClientSession): Promise<Review> {
         this.reviewRepo.addSession(session)
         this.serviceRepo.addSession(session)
@@ -97,7 +99,7 @@ export class ServiceService {
             console.log("pending transaction", pendingTransactions)
             for await (const transaction of pendingTransactions) {
                 var order = transaction.order as Order
-                var selectedItem = order.items.find(item => item.serviceItem == transaction.product.toString())
+                var selectedItem = order.items.find(item => item.serviceItem == transaction.product?.toString())
                 if (selectedItem && selectedItem.deliveryStatus == OrderStatus.COMPLETED) {
                     var result = await this.walletService.sendRewardToWallet(user._id, transaction.amount, transaction, session)
                     console.log("transaction complete", result)
@@ -119,7 +121,7 @@ export class ServiceService {
             for await (const transaction of pendingTransactions) {
                 var order = transaction.order as Order
 
-                var selectedItem = order.items.find(item => item.serviceItem == transaction.product.toString())
+                var selectedItem = order.items.find(item => item.serviceItem == transaction.product?.toString())
                 if (selectedItem && selectedItem.deliveryStatus == OrderStatus.COMPLETED) {
                     var result = await this.walletService.sendRewardToWallet(userId, transaction.amount, transaction, session)
                     console.log("transaction update complete", result)
@@ -142,12 +144,21 @@ export class ServiceService {
 
 
 
-    async editServiceItem(id: String, serviceItemInfo: ServiceItem, session?: ClientSession): Promise<Boolean> {
+    async editProduct(id: String, serviceItemInfo: ServiceItem, session?: ClientSession): Promise<Boolean> {
         if (session) {
             this.serviceItemRepo.addSession(session)
         }
         //add service item
         var updateResult = await this.serviceItemRepo.update({ _id: id }, serviceItemInfo)
+        return updateResult
+    }
+
+    async changeProductVisibility(productId: String, visibility: Boolean, session?: ClientSession) {
+        if (session) {
+            this.serviceItemRepo.addSession(session)
+        }
+        //add service item
+        var updateResult = await this.serviceItemRepo.updateWithFilter({ _id: productId }, { visibility: visibility })
         return updateResult
     }
 
@@ -161,7 +172,7 @@ export class ServiceService {
         return result;
     }
 
-    async getServiceDetails(id: String): Promise<ServiceDTO> {
+    async getServiceDetails(id: String, user: User): Promise<ServiceDTO> {
 
         var serviceInfo = await this.serviceRepo.get(id, ['serviceItems', "business", "coupons"])
         //get related services
@@ -177,11 +188,18 @@ export class ServiceService {
             coupons: couponsDTO
         })
 
-        if (serviceItems?.length > 0) {
-            var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({
-                serviceItem: item, verified: isBusinessVerified,
-                priceRange: Helper.calculateProductPrice(item)
-            })) 
+        if ( serviceItems?.length > 0) {
+            if (user && rest.creator?.toString() != user._id)
+
+                var productsInsideService = (serviceItems as ServiceItem[])?.filter(product =>  product.visibility == true || product.visibility == null).map(item => new ProductDTO({
+                    serviceItem: item, verified: isBusinessVerified,
+                    priceRange: Helper.calculateProductPrice(item)
+                }))
+            else
+                var productsInsideService = (serviceItems as ServiceItem[])?.map(item => new ProductDTO({
+                    serviceItem: item, verified: isBusinessVerified,
+                    priceRange: Helper.calculateProductPrice(item)
+                }))
             result.serviceItems = productsInsideService;
         }
 
@@ -218,7 +236,7 @@ export class ServiceService {
             priceRange: Helper.calculateProductPrice(rest)
         })
         if (userInfo) {
-            var isProductInUserFavorite = (userInfo.favoriteProducts as String[]).find(productId => productId.toString() == serviceItemId.toString())
+            var isProductInUserFavorite = (userInfo.favoriteProducts as String[]).find(productId => productId?.toString() == serviceItemId?.toString())
             if (isProductInUserFavorite != null)
                 result.favorite = true
             else result.favorite = false;
@@ -245,7 +263,7 @@ export class ServiceService {
         ])
         products.push(...producttsBySimilarName)
 
-        var uniqueProductResult = _.uniqBy(products, product => product._id.toString())
+        var uniqueProductResult = _.uniqBy(products, product => product._id?.toString())
         return await Promise.all(uniqueProductResult.map(async product => {
             const { business, service, ...rest } = product
             const { coupons, ...restServcie } = service as Service
@@ -262,6 +280,23 @@ export class ServiceService {
             })
 
         }))
+    }
+
+    async getServicesById(serviceIds: String[]) {
+        var servicesInfo: ServiceDTO[] = [];
+        var services = await this.serviceRepo.find({ _id: { $in: serviceIds } })
+        for await (const iterator of services) {
+            var reviewResult = await this.reviewService.getHighlevelReviewInfo({ service: iterator._id }, null, 1, 5, null, null, false)
+            var result = new ServiceDTO({
+                service: iterator,
+                reviewInfo: reviewResult
+            })
+            servicesInfo.push(result);
+        }
+
+        return servicesInfo
+
+
     }
 
     async getServices(query?: String, pageIndex: number = 1, pageSize: number = 20): Promise<ServiceDTO[]> {

@@ -130,7 +130,7 @@ export class Helper implements IHelper {
         //     var currentDate = new Date()
         //     return (currentDate <= businessInfo.subscription?.expireDate) == true
         // }
-        return businessInfo.verified == true
+        return businessInfo?.verified == true
 
     }
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res, Inject } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseGuards, Query, Param, Get, SetMetadata, ParseIntPipe, ParseBoolPipe, Res, Inject, ParseArrayPipe } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { Response, response } from 'express';
@@ -55,19 +55,29 @@ export class ServiceController {
         var serviceItemResult = await this.serviceService.getServiceItemDetails(itemId, user)
         return serviceItemResult
     }
+    @Get("/find")
+    async getServicesById(@Query("ids" , new ParseArrayPipe({ items: String, separator: ',' })) ids : String[]){
+        var services = await this.serviceService.getServicesById(ids)
+        return services;
+    }
 
     @Get("/:id")
-    async getServiceDetails(@Param("id") businessId: String) {
-        var serviceResult = await this.serviceService.getServiceDetails(businessId)
+    @UseGuards(AuthNotRequired)
+    async getServiceDetails(@Param("id") businessId: String , @GetUser() user? : User ) {
+        var serviceResult = await this.serviceService.getServiceDetails(businessId , user)
         return serviceResult
-
     }
+
+    
 
     @Get("/")
     async getServices(@Query("query") query?: String, @Query("page") page?: number, @Query("size") size?: number) {
         var servicesResult = await this.serviceService.getServices(query, page, size)
         return servicesResult
     }
+
+
+    
 
     // POST request -------------------------------------------------------------------------
 
@@ -148,7 +158,18 @@ export class ServiceController {
     @UseGuards(AuthGuard(), RoleGuard)
     async editServiceItem(@Query("id") serviceITemId: String, @Body() serviceItemInfo: ServiceItem, @Res() response: Response) {
         var editResult = await Helper.runInTransaction(this.connection, async session => {
-            var result = await this.serviceService.editServiceItem(serviceITemId, serviceItemInfo, session)
+            var result = await this.serviceService.editProduct(serviceITemId, serviceItemInfo, session)
+            return result;
+        })
+        response.status(200).json(editResult)
+    }
+
+    @Put("/product/:id/update_visibility")
+    @Role(AccountType.SERVICE_PROVIDER)
+    @UseGuards(AuthGuard(), RoleGuard)
+    async updateProductVisibility(@Param("id") productId: String, @Query("show", ParseBoolPipe) visisbility : Boolean, @Res() response: Response) {
+        var editResult = await Helper.runInTransaction(this.connection, async session => {
+            var result = await this.serviceService.changeProductVisibility(productId, visisbility, session)
             return result;
         })
         response.status(200).json(editResult)

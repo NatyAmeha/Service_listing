@@ -84,10 +84,10 @@ export class BrowseService {
         // "https://firebasestorage.googleapis.com/v0/b/komkum-566ac.appspot.com/o/gast%20gym.jpg?alt=media&token=5b37195c-70ab-4c6d-ae29-786af9da06a3",
         // "https://firebasestorage.googleapis.com/v0/b/komkum-566ac.appspot.com/o/gast_gym_2.jpg?alt=media&token=7202facc-6cd8-4f33-9730-cbd32138f796"
 
-
+        
         var browseResult = new BrowseDTO({
             coupons: couponResult, featuredBusinesses: featuredBusinessDTO,
-            categories: categoryResult, topBusinesses: topBusinessesByRating, featuredServices: trendingServiceResult
+            categories: categoryResult, topBusinesses: topBusinessesByRating, featuredServices: trendingServiceResult.filter(service => service.service.type != "online_store")
         })
         //Query products from coupons and services
         couponResult.forEach(coupon => {
@@ -101,21 +101,25 @@ export class BrowseService {
             var productResults = await Promise.all(serviceItemResult.map(async item => {
                 const { business, ...rest } = item
                 var serviceReviewInfo = await this.reviewService.getHighlevelReviewInfo({ service: item.service })
+
                 var serviceInfo = new ServiceDTO({ reviewInfo: serviceReviewInfo })
 
                 var isProductVerified = Helper.isBusinessVerfied(business as Business)
+                var couponAvailableInBusienss = await this.couponRepo.getActiveCouponsForBusiness((business as Business)._id)
                 return new ProductDTO({
                     serviceItem: rest, serviceInfo: serviceInfo, businessInfo: business as Business, verified: isProductVerified,
-                    priceRange: Helper.calculateProductPrice(rest)
+                    priceRange: Helper.calculateProductPrice(rest),
+                    couponsInfo : couponAvailableInBusienss
                 })
 
             }))
-            browseResult.products = productResults.filter(product => product.verified == true)
+            browseResult.products = productResults
+                .filter(product => product.verified == true && (product.serviceItem.visibility == true || product.serviceItem.visibility == null))
         }
         return browseResult
     }
 
-    async getCategories() {
+    async getCategories() { 
         var result = await this.categoryRepo.find({});
         return result;
     }
@@ -161,7 +165,7 @@ export class BrowseService {
         var availableCoupons: Coupon[] = [];
         var businessesInfo: BusinessDTO[] = []
 
-        var businessesbyCategory = await this.businessRepo.find({ category: categoryName , $caseSensitive: false }, ["coupons"])
+        var businessesbyCategory = await this.businessRepo.find({ category: categoryName, $caseSensitive: false }, ["coupons"])
 
         businessesInfo = await Promise.all(businessesbyCategory.map(async business => {
             const { coupons, ...rest } = business

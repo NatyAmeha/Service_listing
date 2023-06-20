@@ -31,7 +31,7 @@ export class NotificationService {
                 body: `${notificationInfo.description}`,
                 imageUrl:  image?.toString(),
                 type: notificationInfo.notificationType.toString(),
-                destinationId : notificationInfo.business.toString() ?? notificationInfo.service.toString()
+                destinationId : notificationInfo.business?.toString() ?? notificationInfo.service?.toString()
             }
         }
         if (userInfo.fcmToken.length > 0) {

@@ -19,6 +19,7 @@ export class ServiceItem {
     serviceName?: String
     category?: String
     tags?: String[]
+    visibility : Boolean = true
     fixedPrice?: number
     minPrice?: number
     maxPrice?: number
@@ -62,6 +63,7 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     businessName: { type: String, required: true },
     category: { type: String  },
     tags: { type: [String] },
+    visibility : {type : Boolean , default : true},
     fixedPrice: { type: Number },
     minPrice: {
         type: Number, 
@@ -74,7 +76,7 @@ export var serviceItemSchema = new Schema<ServiceItem>({
     likeCount: { type: Number, default: 0 },
     viewCount: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
-    callToAction: { type: String, required: true },
+    callToAction: { type: String, default : "Buy"},
     canOrder: { type: Boolean, default: true },
     expireDate: { type: Date },
     dateCreated: { type: Date, default: Date.now() },

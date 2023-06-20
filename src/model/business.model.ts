@@ -22,6 +22,7 @@ export class Business {
     verified?: Boolean
     featured?: Boolean
     claimed? : Boolean
+    type? : String // large_business, online_store,  freelancer
     services?: String[] | Service[]
     servicesName?: String[]
     coupons?: String[] | Coupon[]
@@ -50,6 +51,7 @@ export var businessSchema: Schema = new Schema<Business>({
     featured: { type: Boolean, default: false },
     services: { type: [Types.ObjectId], ref: "Service", default: [] },
     servicesName: { type: [String] },
+    type: { type: String, required: true , trim : true },
     coupons: { type: [Types.ObjectId], ref: "Coupon", default: [] },
     images: { type: [String], required: true },
     dateCreated: { type: Date, default: Date.now() },

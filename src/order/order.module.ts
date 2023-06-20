@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Messaging } from 'firebase-admin/lib/messaging/messaging';
 import { AuthModule } from 'src/auth/auth.module';
@@ -17,6 +17,7 @@ import { CouponService } from './coupon.service';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 
+@Global()
 @Module({
     imports: [
         AuthModule,
